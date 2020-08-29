@@ -1,7 +1,7 @@
 {
-  "name": "new-app",
-  "version": "1.1.1",
-  "description": "New application schema",
+  "name": "html-e2e",
+  "version": "1.0.0",
+  "description": "Tools for e2e functional testing through HTMl views",
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {
@@ -30,22 +30,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/unsegnor/new-app.git"
+    "url": "git+https://github.com/unsegnor/html-e2e.git"
   },
   "keywords": [
-    "New",
-    "app",
     "test",
     "BDD",
     "gherkins",
     "cucumber",
-    "CI",
-    "travis"
+    "html",
+    "e2e"
   ],
   "author": "Víctor Calatayud Asensio",
   "license": "GPL-3.0-or-later",
   "bugs": {
-    "url": "https://github.com/unsegnor/new-app/issues"
+    "url": "https://github.com/unsegnor/html-e2e/issues"
   },
-  "homepage": "https://github.com/unsegnor/new-app#readme"
+  "homepage": "https://github.com/unsegnor/html-e2e#readme"
 }
