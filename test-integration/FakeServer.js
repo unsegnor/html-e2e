@@ -13,16 +13,19 @@ module.exports = async function(){
         else res.sendFile(__dirname + '/testView.html')
     })
 
-    var server = app.listen(port, () => {
-        console.log(`Example app listening at http://localhost:${port}`)
-    })
+    let server
 
-    var url = `http://localhost:${port}`
+    return new Promise(function(resolve, reject){
+        var url = `http://localhost:${port}`
 
-    return Object.freeze({
-        url,
-        close,
-        setBody
+        server = app.listen(port, () => {
+            //console.log(`Example app listening at http://localhost:${port}`)
+            resolve(Object.freeze({
+                url,
+                close,
+                setBody
+            }))
+        })
     })
 
     function setBody(body){

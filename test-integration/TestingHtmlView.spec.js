@@ -5,10 +5,6 @@ const expectToThrow = require('expect-to-throw')
 describe('testing html view', function(){
     let server, user
 
-    /*this.beforeAll(async function(){
-        server = await FakeServer()
-    })*/
-
     this.beforeEach(async function(){
         server = await FakeServer()
         user = await TestUser()
@@ -19,10 +15,6 @@ describe('testing html view', function(){
         await user.close()
         await server.close()
     })
-
-    /*this.afterAll(async function(){
-        await server.close()
-    })*/
 
     describe('mustBeAbleTo', function(){
         describe('must find options', function(){
