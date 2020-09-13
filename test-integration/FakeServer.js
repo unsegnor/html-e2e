@@ -19,7 +19,6 @@ module.exports = async function(){
         var url = `http://localhost:${port}`
 
         server = app.listen(port, () => {
-            //console.log(`Example app listening at http://localhost:${port}`)
             resolve(Object.freeze({
                 url,
                 close,

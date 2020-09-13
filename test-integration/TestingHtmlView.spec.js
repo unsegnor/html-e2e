@@ -11,7 +11,7 @@ describe('testing html view', function(){
     })
 
     this.afterEach(async function(){
-        //Close the user before the server ot it will hang
+        //Close the user before the server or it will hang
         await user.close()
         await server.close()
     })

@@ -1,7 +1,6 @@
+require('chromedriver');
 const {asyncFindAll} = require('async-javascript')
 const {Builder, By, Key, until} = require('selenium-webdriver');
-
-process.env['PATH'] = process.env['PATH'] + ':/home/vcalatayud/browserdrivers'
 
 module.exports = async function(){
     var driver = await getDriver()
@@ -50,19 +49,18 @@ module.exports = async function(){
     }
 
     async function getDriver(retries){
-        var retries = retries || 3
+        var retries = (retries == undefined)?3:retries
         var newDriver
         try{
             newDriver = await new Builder().forBrowser('chrome').build();
             return newDriver
         }catch(e){
             //TODO implement abstract retry mechanism
-
             if(retries == 0) throw e
 
             return new Promise(function(resolve){
                 setTimeout(async function(){
-                    console.log('Retrying. Remaining retries: ', retries-1)
+                    console.log('Error intializing webdriver. Retrying (Remaining retries: ', retries-1, ')')
                     resolve(getDriver(retries-1))
                 }, 200)
             })
