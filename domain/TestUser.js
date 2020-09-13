@@ -1,6 +1,7 @@
 require('chromedriver');
 const {asyncFindAll} = require('async-javascript')
 const {Builder, By, Key, until} = require('selenium-webdriver');
+let chrome = require('selenium-webdriver/chrome');
 
 module.exports = async function(){
     var driver = await getDriver()
@@ -52,7 +53,10 @@ module.exports = async function(){
         var retries = (retries == undefined)?3:retries
         var newDriver
         try{
-            newDriver = await new Builder().forBrowser('chrome').build();
+            newDriver = await new Builder()
+            .forBrowser('chrome')
+            .setChromeOptions(new chrome.Options().headless())
+            .build();
             return newDriver
         }catch(e){
             //TODO implement abstract retry mechanism
