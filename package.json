@@ -24,7 +24,7 @@
   "scripts": {
     "release": "release-it",
     "test": "npm run test-mocha && npm run test-cucumber",
-    "test-mocha": "npm run test-doubles && npm run test-domain && npm run test-adapters && npm run test-integration && npm run test-mutation",
+    "test-mocha": "npm run test-doubles && npm run test-domain && npm run test-adapters && npm run test-integration",
     "test-domain": "mocha domain --recursive",
     "test-doubles": "mocha test-doubles --recursive",
     "test-adapters": "mocha adapters --recursive",
