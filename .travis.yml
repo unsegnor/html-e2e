@@ -12,4 +12,5 @@ deploy:
   on:
     tags: true
     repo: unsegnor/html-e2e
+    branch: master
   skip_cleanup: 'true'
