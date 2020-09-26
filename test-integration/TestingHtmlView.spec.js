@@ -96,7 +96,7 @@ describe('testing html view', function(){
         })
     })
 
-    describe.only('getValueFor', function(){
+    describe('getValueFor', function(){
         describe('when the property is in a label', function(){
             it('must return the input value', async function(){
                 await server.setBody(`
