@@ -10,6 +10,7 @@ module.exports = async function(){
         open,
         mustBeAbleTo,
         getValueFor,
+        setValueFor,
         close
     })
 
@@ -17,7 +18,20 @@ module.exports = async function(){
         await driver.get(url);
     }
 
+    async function setValueFor(property, value){
+        var relatedInput = await getPropertyInput(property)
+        await relatedInput.clear()
+        await relatedInput.sendKeys(value)
+    }
+
     async function getValueFor(property){
+        var relatedInput = await getPropertyInput(property)
+        var relatedInputValue = await relatedInput.getAttribute('value')
+    
+        return relatedInputValue
+    }
+
+    async function getPropertyInput(property){
         var labels = await driver.findElements(By.tagName('label'))
         var propertyLabels = await asyncFindAll(labels, async function(label){
             var labelText = await label.getText()
@@ -52,9 +66,7 @@ module.exports = async function(){
             relatedInput = relatedInputs[0]
         }
 
-        var relatedInputValue = await relatedInput.getAttribute('value')
-    
-        return relatedInputValue
+        return relatedInput
     }
 
     async function mustBeAbleTo(description){
