@@ -173,6 +173,10 @@ describe('testing html view', function(){
                 expect(age).to.equal('18')
             })
         })
+        it('when there are two matching labels')
+        it('when there are two matching placeholders')
+        it('when there is one label and one placeholder')
+        it('when there is no matching label nor placeholder')
     })
 
     describe('setValueFor', function(){
@@ -268,5 +272,40 @@ describe('testing html view', function(){
                 expect(age).to.equal('18')
             })
         })
+    })
+
+    describe('doAction', function(){
+        describe('when the action is a button', function(){
+            it('must click the button', async function(){
+                server.setBody(`
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    <button onclick="document.getElementById('result').value = 'clicked'">perform action with button</button>
+                `)
+                await user.open(server.url)
+                await user.doAction('perform action with button')
+
+                var clicked = await user.getValueFor('result')
+                expect(clicked).to.equal('clicked')
+            })
+        })
+        describe('when the action is an input button', function(){
+            it('must click the button', async function(){
+                server.setBody(`
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    <input type="button" onclick="document.getElementById('result').value = 'clicked'" value="perform action with input button">
+                `)
+                await user.open(server.url)
+                await user.doAction('perform action with input button')
+
+                var result = await user.getValueFor('result')
+                expect(result).to.equal('clicked')
+            })
+        })
+        it('when there are two matching buttons')
+        it('when there are two matching inputs')
+        it('when there is one button and one input')
+        it('when there is no matching buttons nor inputs')
     })
 })

@@ -11,11 +11,21 @@ module.exports = async function(){
         mustBeAbleTo,
         getValueFor,
         setValueFor,
+        doAction,
         close
     })
 
     async function open(url){
         await driver.get(url);
+    }
+
+    async function doAction(description){
+        var button = await getActionButtonFor(description)
+        if(button) await button.click()
+        else{
+            var inputOption = await getActionInputFor(description)
+            await inputOption.click()
+        }
     }
 
     async function setValueFor(property, value){
@@ -69,7 +79,7 @@ module.exports = async function(){
         return relatedInput
     }
 
-    async function mustBeAbleTo(description){
+    async function getActionButtonFor(description){
         var buttons = await driver.findElements(By.tagName('button'))
         var buttonOptions = await asyncFindAll(buttons, async function(button){
             var buttonText = await button.getText()
@@ -78,8 +88,10 @@ module.exports = async function(){
         })
 
         if(buttonOptions.length > 1) throw new Error(`There are several button options to ${description}`)
-        var buttonOption = buttonOptions[0]
+        return buttonOptions[0]
+    }
 
+    async function getActionInputFor(description){
         var inputs = await driver.findElements(By.tagName('input'))
         var inputOptions = await asyncFindAll(inputs, async function(input){
             var inputType = await input.getAttribute('type')
@@ -91,7 +103,12 @@ module.exports = async function(){
         })
 
         if(inputOptions.length > 1) throw new Error(`There are several input options to ${description}`)
-        var inputOption = inputOptions[0]
+        return inputOptions[0]
+    }
+
+    async function mustBeAbleTo(description){
+        var buttonOption = await getActionButtonFor(description)
+        var inputOption = await getActionInputFor(description)
 
         if(buttonOption && inputOption) throw new Error(`There are several options to ${description}`)
         if(!buttonOption && !inputOption) throw new Error(`User is not able to ${description}`)
