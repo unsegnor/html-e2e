@@ -172,6 +172,12 @@ describe('testing html view', function(){
                 var age = await user.getValueFor('agE')
                 expect(age).to.equal('18')
             })
+            it('must work with password inputs', async function(){
+                await server.setBody(`<input placeholder="pass" type="password" value="blablabla">`)
+                await user.open(server.url)
+                var pass = await user.getValueFor('pass')
+                expect(pass).to.equal('blablabla')
+            })
         })
         it('when there are two matching labels')
         it('when there are two matching placeholders')

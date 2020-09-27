@@ -55,7 +55,7 @@ module.exports = async function(){
             var inputs = await driver.findElements(By.tagName('input'))
             var relatedInputs = await asyncFindAll(inputs, async function(input){
                 var inputType = await input.getAttribute('type')
-                if(inputType == 'text'){
+                if(inputType == 'text' || inputType == 'password'){
                     var inputPlaceholder = await input.getAttribute('placeholder')
                     return inputPlaceholder.toLowerCase() == property.toLowerCase()
                 }
