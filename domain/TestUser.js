@@ -97,7 +97,7 @@ module.exports = async function(){
         var inputs = await driver.findElements(By.tagName('input'))
         var inputOptions = await asyncFindAll(inputs, async function(input){
             var inputType = await input.getAttribute('type')
-            if(inputType == 'button'){
+            if(inputType == 'button' || inputType == 'submit'){
                 var inputText = await input.getAttribute('value')
                 var inputDisabled = await input.getAttribute('disabled')
                 return inputText.toLowerCase() == description.toLowerCase() && !inputDisabled

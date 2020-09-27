@@ -309,6 +309,20 @@ describe('testing html view', function(){
                 expect(result).to.equal('clicked')
             })
         })
+        describe('when the action is an input submit', function(){
+            it('must click the button', async function(){
+                server.setBody(`
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    <input type="submit" onclick="document.getElementById('result').value = 'clicked'" value="perform action with input button">
+                `)
+                await user.open(server.url)
+                await user.doAction('perform action with input button')
+
+                var result = await user.get('result')
+                expect(result).to.equal('clicked')
+            })
+        })
         it('when there are two matching buttons')
         it('when there are two matching inputs')
         it('when there is one button and one input')
