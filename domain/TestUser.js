@@ -9,8 +9,10 @@ module.exports = async function(){
     var instance = Object.freeze({
         open,
         mustBeAbleTo,
-        getValueFor,
-        setValueFor,
+        get,
+        getValueFor: get,
+        set,
+        setValueFor: set,
         doAction,
         close
     })
@@ -28,13 +30,13 @@ module.exports = async function(){
         }
     }
 
-    async function setValueFor(property, value){
+    async function set(property, value){
         var relatedInput = await getPropertyInput(property)
         await relatedInput.clear()
         await relatedInput.sendKeys(value)
     }
 
-    async function getValueFor(property){
+    async function get(property){
         var relatedInput = await getPropertyInput(property)
         var relatedInputValue = await relatedInput.getAttribute('value')
     

@@ -96,14 +96,14 @@ describe('testing html view', function(){
         })
     })
 
-    describe('getValueFor', function(){
+    describe('get', function(){
         describe('when the property is in a label', function(){
             it('must return the input value', async function(){
                 await server.setBody(`
                     <label for="age">age</label>
                     <input type="text" id="age" value="18">`)
                 await user.open(server.url)
-                var age = await user.getValueFor('age')
+                var age = await user.get('age')
                 expect(age).to.equal('18')
             })
             it('must ignore case to match property and label', async function(){
@@ -111,7 +111,7 @@ describe('testing html view', function(){
                     <label for="age">Age</label>
                     <input type="text" id="age" value="18">`)
                 await user.open(server.url)
-                var age = await user.getValueFor('agE')
+                var age = await user.get('agE')
                 expect(age).to.equal('18')
             })
             it('must ignore spaces to match property and label', async function(){
@@ -119,7 +119,7 @@ describe('testing html view', function(){
                     <label for="age"> age </label>
                     <input type="text" id="age" value="18">`)
                 await user.open(server.url)
-                var age = await user.getValueFor('age')
+                var age = await user.get('age')
                 expect(age).to.equal('18')
             })  
             it('must ignore colon to match property and label', async function(){
@@ -127,7 +127,7 @@ describe('testing html view', function(){
                     <label for="age"> Age: </label>
                     <input type="text" id="age" value="18">`)
                 await user.open(server.url)
-                var age = await user.getValueFor('age')
+                var age = await user.get('age')
                 expect(age).to.equal('18')
             })
             it('must work with several words', async function(){
@@ -135,7 +135,7 @@ describe('testing html view', function(){
                     <label for="date-of-birth"> Date of birth: </label>
                     <input type="text" id="date-of-birth" value="1987-01-23">`)
                 await user.open(server.url)
-                var dateOfBirth = await user.getValueFor('date of birth')
+                var dateOfBirth = await user.get('date of birth')
                 expect(dateOfBirth).to.equal('1987-01-23')
             })
             it('must throw when the label includes the property but is not the entire word', async function(){
@@ -145,7 +145,7 @@ describe('testing html view', function(){
                 await user.open(server.url)
 
                 await expectToThrow('property "age" not found', async function(){
-                    await user.getValueFor('age')
+                    await user.get('age')
                 })
             })
             it('must throw when the field related to the label does not exist', async function(){
@@ -155,7 +155,7 @@ describe('testing html view', function(){
                 await user.open(server.url)
 
                 await expectToThrow('missing input field for label "Age:"', async function(){
-                    await user.getValueFor('age')
+                    await user.get('age')
                 })
             })
         })
@@ -163,19 +163,19 @@ describe('testing html view', function(){
             it('must return the input value', async function(){
                 await server.setBody(`<input placeholder="age" type="text" value="18">`)
                 await user.open(server.url)
-                var age = await user.getValueFor('age')
+                var age = await user.get('age')
                 expect(age).to.equal('18')
             })
             it('must ignore case to match property and placeholder', async function(){
                 await server.setBody(`<input placeholder="Age" type="text" value="18">`)
                 await user.open(server.url)
-                var age = await user.getValueFor('agE')
+                var age = await user.get('agE')
                 expect(age).to.equal('18')
             })
             it('must work with password inputs', async function(){
                 await server.setBody(`<input placeholder="pass" type="password" value="blablabla">`)
                 await user.open(server.url)
-                var pass = await user.getValueFor('pass')
+                var pass = await user.get('pass')
                 expect(pass).to.equal('blablabla')
             })
         })
@@ -185,16 +185,16 @@ describe('testing html view', function(){
         it('when there is no matching label nor placeholder')
     })
 
-    describe('setValueFor', function(){
+    describe('set', function(){
         describe('when the property is in a label', function(){
             it('must set the value in the input', async function(){
                 await server.setBody(`
                     <label for="age">age</label>
                     <input type="text" id="age" value="oldvalue">`)
                 await user.open(server.url)
-                await user.setValueFor('age','18')
+                await user.set('age','18')
 
-                var age = await user.getValueFor('age')
+                var age = await user.get('age')
                 expect(age).to.equal('18')
             })
             it('must ignore case to match property and label', async function(){
@@ -202,9 +202,9 @@ describe('testing html view', function(){
                     <label for="age">Age</label>
                     <input type="text" id="age" value="oldvalue">`)
                 await user.open(server.url)
-                await user.setValueFor('age','18')
+                await user.set('age','18')
 
-                var age = await user.getValueFor('age')
+                var age = await user.get('age')
                 expect(age).to.equal('18')
             })
             it('must ignore spaces to match property and label', async function(){
@@ -212,9 +212,9 @@ describe('testing html view', function(){
                     <label for="age"> age </label>
                     <input type="text" id="age" value="oldvalue">`)
                 await user.open(server.url)
-                await user.setValueFor('age','18')
+                await user.set('age','18')
 
-                var age = await user.getValueFor('age')
+                var age = await user.get('age')
                 expect(age).to.equal('18')
             })  
             it('must ignore colon to match property and label', async function(){
@@ -222,9 +222,9 @@ describe('testing html view', function(){
                     <label for="age"> Age: </label>
                     <input type="text" id="age" value="oldvalue">`)
                 await user.open(server.url)
-                await user.setValueFor('age','18')
+                await user.set('age','18')
 
-                var age = await user.getValueFor('age')
+                var age = await user.get('age')
                 expect(age).to.equal('18')
             })
             it('must work with several words', async function(){
@@ -232,9 +232,9 @@ describe('testing html view', function(){
                     <label for="date-of-birth"> Date of birth: </label>
                     <input type="text" id="date-of-birth" value="oldvalue">`)
                 await user.open(server.url)
-                await user.setValueFor('date of birth', '1987-01-23')
+                await user.set('date of birth', '1987-01-23')
 
-                var dateOfBirth = await user.getValueFor('date of birth')
+                var dateOfBirth = await user.get('date of birth')
                 expect(dateOfBirth).to.equal('1987-01-23')
             })
             it('must throw when the label includes the property but is not the entire word', async function(){
@@ -244,7 +244,7 @@ describe('testing html view', function(){
                 await user.open(server.url)
 
                 await expectToThrow('property "age" not found', async function(){
-                    await user.setValueFor('age', 'newValue')
+                    await user.set('age', 'newValue')
                 })
             })
             it('must throw when the field related to the label does not exist', async function(){
@@ -254,7 +254,7 @@ describe('testing html view', function(){
                 await user.open(server.url)
 
                 await expectToThrow('missing input field for label "Age:"', async function(){
-                    await user.setValueFor('age', 'newValue')
+                    await user.set('age', 'newValue')
                 })
             })
         })
@@ -263,18 +263,18 @@ describe('testing html view', function(){
                 await server.setBody(`<input placeholder="age" type="text" value="oldValue">`)
                 await user.open(server.url)
 
-                await user.setValueFor('age', '18')
+                await user.set('age', '18')
 
-                var age = await user.getValueFor('age')
+                var age = await user.get('age')
                 expect(age).to.equal('18')
             })
             it('must ignore case to match property and placeholder', async function(){
                 await server.setBody(`<input placeholder="Age" type="text" value="oldValue">`)
                 await user.open(server.url)
 
-                await user.setValueFor('agE', '18')
+                await user.set('agE', '18')
 
-                var age = await user.getValueFor('age')
+                var age = await user.get('age')
                 expect(age).to.equal('18')
             })
         })
@@ -291,7 +291,7 @@ describe('testing html view', function(){
                 await user.open(server.url)
                 await user.doAction('perform action with button')
 
-                var clicked = await user.getValueFor('result')
+                var clicked = await user.get('result')
                 expect(clicked).to.equal('clicked')
             })
         })
@@ -305,7 +305,7 @@ describe('testing html view', function(){
                 await user.open(server.url)
                 await user.doAction('perform action with input button')
 
-                var result = await user.getValueFor('result')
+                var result = await user.get('result')
                 expect(result).to.equal('clicked')
             })
         })
