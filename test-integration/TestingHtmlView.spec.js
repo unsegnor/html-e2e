@@ -338,6 +338,35 @@ describe('testing html view', function(){
                 var clicked = await user.get('result')
                 expect(clicked).to.equal('clicked')
             })
+
+            it('must click buttons which text is filled up to 1 second after loading the webpage', async function(){
+                server.setBody(`
+                    <script>setTimeout(function(){ document.getElementById('button1').innerText = 'perform action with button'}, 1000)</script>
+                    <button id="button1" onclick="document.getElementById('result').value = 'clicked'">provisional text while loading</button>
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    `)
+                await user.open(server.url)
+                await user.doAction('perform action with button')
+
+                var clicked = await user.get('result')
+                expect(clicked).to.equal('clicked')
+            })
+
+            it('must click buttons which text is filled up to 1 second after performing an action', async function(){
+                server.setBody(`
+                    <button id="button0" onclick="setTimeout(function(){ document.getElementById('button1').innerText = 'perform action with button'}, 1000)">load more actions</button>
+                    <button id="button1" onclick="document.getElementById('result').value = 'clicked'">provisional text while loading</button>
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    `)
+                await user.open(server.url)
+                await user.doAction('load more actions')
+                await user.doAction('perform action with button')
+
+                var clicked = await user.get('result')
+                expect(clicked).to.equal('clicked')
+            })
         })
         describe('when the action is an input button', function(){
             it('must click the button', async function(){
@@ -351,6 +380,35 @@ describe('testing html view', function(){
 
                 var result = await user.get('result')
                 expect(result).to.equal('clicked')
+            })
+
+            it('must click input buttons which text is filled up to 1 second after loading the webpage', async function(){
+                server.setBody(`
+                    <script>setTimeout(function(){ document.getElementById('button1').value = 'perform action with button'}, 1000)</script>
+                    <input type="button" id="button1" onclick="document.getElementById('result').value = 'clicked'" value="provisional text while loading">
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    `)
+                await user.open(server.url)
+                await user.doAction('perform action with button')
+
+                var clicked = await user.get('result')
+                expect(clicked).to.equal('clicked')
+            })
+
+            it('must click input buttons which text is filled up to 1 second after performing an action', async function(){
+                server.setBody(`
+                    <button id="button0" onclick="setTimeout(function(){ document.getElementById('button1').value = 'perform action with button'}, 1000)">load more actions</button>
+                    <input type="button" id="button1" onclick="document.getElementById('result').value = 'clicked'" value="provisional text while loading">
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    `)
+                await user.open(server.url)
+                await user.doAction('load more actions')
+                await user.doAction('perform action with button')
+
+                var clicked = await user.get('result')
+                expect(clicked).to.equal('clicked')
             })
         })
         describe('when the action is an input submit', function(){

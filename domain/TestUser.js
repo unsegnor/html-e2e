@@ -22,12 +22,11 @@ module.exports = async function(){
     }
 
     async function doAction(description){
-        var button = await getActionButtonFor(description)
-        if(button) await button.click()
-        else{
-            var inputOption = await getActionInputFor(description)
-            await inputOption.click()
-        }
+        var option = await Promise.race([
+            waitToGetActionButtonFor(description),
+            waitToGetActionInputFor(description)])
+
+        await option.click()
     }
 
     async function set(property, value){
