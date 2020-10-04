@@ -91,6 +91,16 @@ module.exports = async function(){
         }
     }
 
+    async function waitToGetActionInputFor(description){
+        try{
+            return await driver.wait(async function(){
+                return getActionInputFor(description)
+            },2000)
+        }catch(e){
+            if(e.name != 'TimeoutError') throw e
+        }
+    }
+
     async function getActionButtonFor(description){
         var buttons = await driver.findElements(By.tagName('button'))
         var buttonOptions = await asyncFindAll(buttons, async function(button){
@@ -99,7 +109,6 @@ module.exports = async function(){
             return buttonText.toLowerCase() == description.toLowerCase() && !buttonDisabled
         })
 
-        if(buttonOptions.length > 1) throw new Error(`There are several button options to ${description}`)
         return buttonOptions[0]
     }
 
@@ -114,16 +123,14 @@ module.exports = async function(){
             }
         })
 
-        if(inputOptions.length > 1) throw new Error(`There are several input options to ${description}`)
         return inputOptions[0]
     }
 
     async function mustBeAbleTo(description){
-            var buttonOption = await waitToGetActionButtonFor(description)
-            var inputOption = await getActionInputFor(description)
-    
-            if(buttonOption && inputOption) throw new Error(`There are several options to ${description}`)
-            if(!buttonOption && !inputOption) throw new Error(`User is not able to ${description}`)
+            var options = await Promise.race([
+                waitToGetActionButtonFor(description),
+                waitToGetActionInputFor(description)])           
+            if(options.length == 0) throw new Error(`User is not able to ${description}`)
     }
 
     async function close(){

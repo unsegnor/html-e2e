@@ -65,6 +65,25 @@ describe('testing html view', function(){
                 await user.doAction('load more actions')
                 await user.mustBeAbleTo('perform available option in button')
             })
+
+            it('in input buttons text filled up to 1 second after loading the webpage', async function(){
+                server.setBody(`
+                    <script>setTimeout(function(){ document.getElementById('button1').value = 'perform available option in input button'}, 1000)</script>
+                    <input type="button" id="button1" value="provisional text while loading">
+                    `)
+                await user.open(server.url)
+                await user.mustBeAbleTo('perform available option in input button')
+            })
+
+            it('in input buttons text filled up to 1 second after performing an action', async function(){
+                server.setBody(`
+                    <button id="button0" onclick="setTimeout(function(){ document.getElementById('button1').value = 'perform available option in input button'}, 1000)">load more actions</button>
+                    <input type="button" id="button1" value="provisional text while loading">
+                    `)
+                await user.open(server.url)
+                await user.doAction('load more actions')
+                await user.mustBeAbleTo('perform available option in input button')
+            })
         })
     
         describe('must throw', function(){
@@ -93,7 +112,9 @@ describe('testing html view', function(){
                 })
             })
 
-            it('when there are two buttons performing the same action', async function(){
+            //we may not give an error when two options are available for doing the same
+            //as long as both actually DO the same, we could just raise a WARNING
+            xit('when there are two buttons performing the same action', async function(){
                 server.setBody('<button>perform action</button><button>perform action</button>')
                 await user.open(server.url)
                 await expectToThrow('there are several button options to perform action', async function(){
@@ -101,7 +122,7 @@ describe('testing html view', function(){
                 })
             })
 
-            it('when there are two inputs performing the same action', async function(){
+            xit('when there are two inputs performing the same action', async function(){
                 server.setBody('<input type="button" value="perform action"><input type="button" value="perform action">')
                 await user.open(server.url)
                 await expectToThrow('there are several input options to perform action', async function(){
@@ -109,7 +130,7 @@ describe('testing html view', function(){
                 })
             })
 
-            it('when there is a button and an input performing the same action', async function(){
+            xit('when there is a button and an input performing the same action', async function(){
                 server.setBody('<input type="button" value="perform action"><button>perform action</button>')
                 await user.open(server.url)
                 await expectToThrow(async function(){
