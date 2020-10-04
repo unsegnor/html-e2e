@@ -81,6 +81,16 @@ module.exports = async function(){
         return relatedInput
     }
 
+    async function waitToGetActionButtonFor(description){
+        try{
+            return await driver.wait(async function(){
+                return getActionButtonFor(description)
+            },2000)
+        }catch(e){
+            if(e.name != 'TimeoutError') throw e
+        }
+    }
+
     async function getActionButtonFor(description){
         var buttons = await driver.findElements(By.tagName('button'))
         var buttonOptions = await asyncFindAll(buttons, async function(button){
@@ -109,11 +119,11 @@ module.exports = async function(){
     }
 
     async function mustBeAbleTo(description){
-        var buttonOption = await getActionButtonFor(description)
-        var inputOption = await getActionInputFor(description)
-
-        if(buttonOption && inputOption) throw new Error(`There are several options to ${description}`)
-        if(!buttonOption && !inputOption) throw new Error(`User is not able to ${description}`)
+            var buttonOption = await waitToGetActionButtonFor(description)
+            var inputOption = await getActionInputFor(description)
+    
+            if(buttonOption && inputOption) throw new Error(`There are several options to ${description}`)
+            if(!buttonOption && !inputOption) throw new Error(`User is not able to ${description}`)
     }
 
     async function close(){

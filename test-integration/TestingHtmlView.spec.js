@@ -17,6 +17,10 @@ describe('testing html view', function(){
         await server.close()
     })
 
+    //TODO explore combinations of tests according to dimensions:
+    //method, type of element, asynchronous loaded, after web load, after action, case sensitive, element does not exist, exists once, exists twice, added spaces in the name
+    //try with all combinations and pairwise
+
     describe('mustBeAbleTo', function(){
         describe('must find options', function(){
             it('in buttons text', async function(){
@@ -41,6 +45,25 @@ describe('testing html view', function(){
                 server.setBody('<input type="button" value="perform AVAILABLE option in button value">')
                 await user.open(server.url)
                 await user.mustBeAbleTo('perform available OPTION in button value')
+            })
+
+            it('in buttons text filled up to 1 second after loading the webpage', async function(){
+                server.setBody(`
+                    <script>setTimeout(function(){ document.getElementById('button1').innerText = 'perform available option in button'}, 1000)</script>
+                    <button id="button1">provisional text while loading</button>
+                    `)
+                await user.open(server.url)
+                await user.mustBeAbleTo('perform available option in button')
+            })
+
+            it('in buttons text filled up to 1 second after performing an action', async function(){
+                server.setBody(`
+                    <button id="button0" onclick="setTimeout(function(){ document.getElementById('button1').innerText = 'perform available option in button'}, 1000)">load more actions</button>
+                    <button id="button1">provisional text while loading</button>
+                    `)
+                await user.open(server.url)
+                await user.doAction('load more actions')
+                await user.mustBeAbleTo('perform available option in button')
             })
         })
     
@@ -73,7 +96,7 @@ describe('testing html view', function(){
             it('when there are two buttons performing the same action', async function(){
                 server.setBody('<button>perform action</button><button>perform action</button>')
                 await user.open(server.url)
-                await expectToThrow(async function(){
+                await expectToThrow('there are several button options to perform action', async function(){
                     await user.mustBeAbleTo('perform action')
                 })
             })
@@ -81,7 +104,7 @@ describe('testing html view', function(){
             it('when there are two inputs performing the same action', async function(){
                 server.setBody('<input type="button" value="perform action"><input type="button" value="perform action">')
                 await user.open(server.url)
-                await expectToThrow(async function(){
+                await expectToThrow('there are several input options to perform action', async function(){
                     await user.mustBeAbleTo('perform action')
                 })
             })
