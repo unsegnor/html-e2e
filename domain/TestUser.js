@@ -24,7 +24,11 @@ module.exports = async function(){
     async function doAction(description){
         var option = await Promise.race([
             waitTo(getActionButtonFor.bind(this, description)),
-            waitTo(getActionInputFor.bind(this, description))])
+            waitTo(getActionInputFor.bind(this, description)),
+            waitTo(getActionLinkFor.bind(this, description))
+        ])
+
+        if(!option) throw new Error(`user could not ${description}`)
 
         await option.click()
     }
@@ -99,6 +103,17 @@ module.exports = async function(){
         })
 
         return buttonOptions[0]
+    }
+
+    async function getActionLinkFor(description){
+        var links = await driver.findElements(By.tagName('a'))
+        var linkOptions = await asyncFindAll(links, async function(link){
+            var linkText = await link.getText()
+            var isLinkDisabled = await link.getAttribute('disabled')
+            return linkText.toLowerCase() == description.toLowerCase() && !isLinkDisabled
+        })
+
+        return linkOptions[0]
     }
 
     async function getActionInputFor(description){

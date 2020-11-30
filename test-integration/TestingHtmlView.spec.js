@@ -395,5 +395,74 @@ describe('testing html view', function(){
                 expect(result).to.equal('clicked')
             })
         })
+        describe('when the action is a link', function(){
+            it('must click the link', async function(){
+                server.setBody(`
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    <a href="#" onclick="document.getElementById('result').value = 'clicked'">perform action with input link</a>
+                `)
+                await user.open(server.url)
+                await user.doAction('perform action with input link')
+
+                var result = await user.get('result')
+                expect(result).to.equal('clicked')
+            })
+
+            it('must ignore case', async function(){
+                server.setBody(`
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    <a href="#" onclick="document.getElementById('result').value = 'clicked'">perform ACTION with input link</a>
+                `)
+                await user.open(server.url)
+                await user.doAction('perform action with input LINK')
+
+                var result = await user.get('result')
+                expect(result).to.equal('clicked')
+            })
+
+            it('must click the link which text is filled up to 1 second after loading the webpage', async function(){
+                server.setBody(`
+                    <script>setTimeout(function(){ document.getElementById('link1').text = 'perform action with link'}, 1000)</script>
+                    <a href="#" id="link1" onclick="document.getElementById('result').value = 'clicked'">provisional text while loading</a>
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    `)
+                await user.open(server.url)
+                await user.doAction('perform action with link')
+
+                var clicked = await user.get('result')
+                expect(clicked).to.equal('clicked')
+            })
+
+            it('must click the link which text is filled up to 1 second after performing an action', async function(){
+                server.setBody(`
+                    <button id="button0" onclick="setTimeout(function(){ document.getElementById('link1').text = 'perform action with link'}, 1000)">load more actions</button>
+                    <a href="#" id="link1" onclick="document.getElementById('result').value = 'clicked'">provisional text while loading</a>
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    `)
+                await user.open(server.url)
+                await user.doAction('load more actions')
+                await user.doAction('perform action with link')
+
+                var clicked = await user.get('result')
+                expect(clicked).to.equal('clicked')
+            })
+
+            it('must throw when the link is disabled', async function(){
+                server.setBody(`
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    <a href="#" onclick="document.getElementById('result').value = 'clicked'" disabled>perform action with input link</a>
+                `)
+                await user.open(server.url)
+
+                await expectToThrow('user could not perform action with input link', async function(){
+                    await user.doAction('perform action with input link')
+                })
+            })
+        })
     })
 })
