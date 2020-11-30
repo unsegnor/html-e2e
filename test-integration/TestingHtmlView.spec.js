@@ -395,7 +395,7 @@ describe('testing html view', function(){
                 expect(result).to.equal('clicked')
             })
         })
-        describe.only('when the action is a link', function(){
+        describe('when the action is a link', function(){
             it('must click the link', async function(){
                 server.setBody(`
                     <label for="result">Result</label>
