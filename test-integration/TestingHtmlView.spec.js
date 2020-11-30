@@ -90,7 +90,7 @@ describe('testing html view', function(){
             describe('when the option is not available because', function(){
                 it('does not exist', async function(){
                     await user.open(server.url)
-                    await expectToThrow(async function(){
+                    await expectToThrow('user is not able to perform not existing option', async function(){
                         await user.mustBeAbleTo('perform not existing option')
                     })
                 })
@@ -98,7 +98,7 @@ describe('testing html view', function(){
                 it('exists as input but is disabled', async function(){
                     server.setBody('<input type="button" value="perform disabled option as input" disabled>')
                     await user.open(server.url)
-                    await expectToThrow(async function(){
+                    await expectToThrow('user is not able to perform disabled option as input', async function(){
                         await user.mustBeAbleTo('perform disabled option as input')
                     })
                 })
@@ -106,35 +106,9 @@ describe('testing html view', function(){
                 it('exists as button but is disabled', async function(){
                     server.setBody('<button disabled>perform disabled option as button</button>')
                     await user.open(server.url)
-                    await expectToThrow(async function(){
+                    await expectToThrow('user is not able to perform disabled option as button', async function(){
                         await user.mustBeAbleTo('perform disabled option as button')
                     })
-                })
-            })
-
-            //we may not give an error when two options are available for doing the same
-            //as long as both actually DO the same, we could just raise a WARNING
-            xit('when there are two buttons performing the same action', async function(){
-                server.setBody('<button>perform action</button><button>perform action</button>')
-                await user.open(server.url)
-                await expectToThrow('there are several button options to perform action', async function(){
-                    await user.mustBeAbleTo('perform action')
-                })
-            })
-
-            xit('when there are two inputs performing the same action', async function(){
-                server.setBody('<input type="button" value="perform action"><input type="button" value="perform action">')
-                await user.open(server.url)
-                await expectToThrow('there are several input options to perform action', async function(){
-                    await user.mustBeAbleTo('perform action')
-                })
-            })
-
-            xit('when there is a button and an input performing the same action', async function(){
-                server.setBody('<input type="button" value="perform action"><button>perform action</button>')
-                await user.open(server.url)
-                await expectToThrow(async function(){
-                    await user.mustBeAbleTo('perform action')
                 })
             })
         })
@@ -223,10 +197,6 @@ describe('testing html view', function(){
                 expect(pass).to.equal('blablabla')
             })
         })
-        it('when there are two matching labels')
-        it('when there are two matching placeholders')
-        it('when there is one label and one placeholder')
-        it('when there is no matching label nor placeholder')
     })
 
     describe('set', function(){
@@ -425,9 +395,5 @@ describe('testing html view', function(){
                 expect(result).to.equal('clicked')
             })
         })
-        it('when there are two matching buttons')
-        it('when there are two matching inputs')
-        it('when there is one button and one input')
-        it('when there is no matching buttons nor inputs')
     })
 })

@@ -129,7 +129,7 @@ module.exports = async function(){
             var options = await Promise.race([
                 waitToGetActionButtonFor(description),
                 waitToGetActionInputFor(description)])           
-            if(options.length == 0) throw new Error(`User is not able to ${description}`)
+            if(!options || options.length == 0) throw new Error(`User is not able to ${description}`)
     }
 
     async function close(){
