@@ -395,7 +395,7 @@ describe('testing html view', function(){
                 expect(result).to.equal('clicked')
             })
         })
-        describe('when the action is a link', function(){
+        describe.only('when the action is a link', function(){
             it('must click the link', async function(){
                 server.setBody(`
                     <label for="result">Result</label>
@@ -404,19 +404,6 @@ describe('testing html view', function(){
                 `)
                 await user.open(server.url)
                 await user.doAction('perform action with input link')
-
-                var result = await user.get('result')
-                expect(result).to.equal('clicked')
-            })
-
-            it('must ignore case', async function(){
-                server.setBody(`
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    <a href="#" onclick="document.getElementById('result').value = 'clicked'">perform ACTION with input link</a>
-                `)
-                await user.open(server.url)
-                await user.doAction('perform action with input LINK')
 
                 var result = await user.get('result')
                 expect(result).to.equal('clicked')
@@ -449,6 +436,32 @@ describe('testing html view', function(){
 
                 var clicked = await user.get('result')
                 expect(clicked).to.equal('clicked')
+            })
+
+            it('must ignore case', async function(){
+                server.setBody(`
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    <a href="#" onclick="document.getElementById('result').value = 'clicked'">perform ACTION with input link</a>
+                `)
+                await user.open(server.url)
+                await user.doAction('perform action with input LINK')
+
+                var result = await user.get('result')
+                expect(result).to.equal('clicked')
+            })
+
+            it('must look also for a matching title when the content is an icon', async function(){
+                server.setBody(`
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    <a href="#" onclick="document.getElementById('result').value = 'clicked'" title="perform ACTION with input link">+</a>
+                `)
+                await user.open(server.url)
+                await user.doAction('perform action with input LINK')
+
+                var result = await user.get('result')
+                expect(result).to.equal('clicked')
             })
 
             it('must throw when the link is disabled', async function(){

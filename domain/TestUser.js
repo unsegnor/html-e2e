@@ -110,7 +110,11 @@ module.exports = async function(){
         var linkOptions = await asyncFindAll(links, async function(link){
             var linkText = await link.getText()
             var isLinkDisabled = await link.getAttribute('disabled')
-            return linkText.toLowerCase() == description.toLowerCase() && !isLinkDisabled
+            if(isLinkDisabled) return false
+            if(linkText.toLowerCase() == description.toLowerCase()) return true
+            
+            var title = await link.getAttribute('title')
+            return title.toLowerCase() == description.toLowerCase()
         })
 
         return linkOptions[0]
