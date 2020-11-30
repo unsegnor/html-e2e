@@ -23,8 +23,8 @@ module.exports = async function(){
 
     async function doAction(description){
         var option = await Promise.race([
-            waitToGetActionButtonFor(description),
-            waitToGetActionInputFor(description)])
+            waitTo(getActionButtonFor.bind(this, description)),
+            waitTo(getActionInputFor.bind(this, description))])
 
         await option.click()
     }
@@ -80,20 +80,10 @@ module.exports = async function(){
         return relatedInput
     }
 
-    async function waitToGetActionButtonFor(description){
+    async function waitTo(fn){
         try{
             return await driver.wait(async function(){
-                return getActionButtonFor(description)
-            },2000)
-        }catch(e){
-            if(e.name != 'TimeoutError') throw e
-        }
-    }
-
-    async function waitToGetActionInputFor(description){
-        try{
-            return await driver.wait(async function(){
-                return getActionInputFor(description)
+                return fn()
             },2000)
         }catch(e){
             if(e.name != 'TimeoutError') throw e
@@ -127,8 +117,8 @@ module.exports = async function(){
 
     async function mustBeAbleTo(description){
             var options = await Promise.race([
-                waitToGetActionButtonFor(description),
-                waitToGetActionInputFor(description)])           
+                waitTo(getActionButtonFor.bind(this, description)),
+                waitTo(getActionInputFor.bind(this, description))])           
             if(!options || options.length == 0) throw new Error(`User is not able to ${description}`)
     }
 
