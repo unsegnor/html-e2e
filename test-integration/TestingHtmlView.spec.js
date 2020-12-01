@@ -309,6 +309,32 @@ describe('testing html view', function () {
         expect(clicked).to.equal('clicked')
       })
 
+      it('must not be case sensitive', async function () {
+        server.setBody(`
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    <button onclick="document.getElementById('result').value = 'clicked'">perform ACTION with button</button>
+                `)
+        await user.open(server.url)
+        await user.doAction('perform action with BUTTON')
+
+        const clicked = await user.get('result')
+        expect(clicked).to.equal('clicked')
+      })
+
+      it('must ignore spaces in the beginning or the end', async function () {
+        server.setBody(`
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    <button onclick="document.getElementById('result').value = 'clicked'">   perform ACTION with button   </button>
+                `)
+        await user.open(server.url)
+        await user.doAction(' perform action with BUTTON ')
+
+        const clicked = await user.get('result')
+        expect(clicked).to.equal('clicked')
+      })
+
       it('must look also for matching title when content is an icon', async function () {
         server.setBody(`
                     <label for="result">Result</label>
@@ -459,6 +485,19 @@ describe('testing html view', function () {
                 `)
         await user.open(server.url)
         await user.doAction('perform action with input LINK')
+
+        const result = await user.get('result')
+        expect(result).to.equal('clicked')
+      })
+
+      it('must ignore spaces in the beginning or the end', async function () {
+        server.setBody(`
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    <a href="#" onclick="document.getElementById('result').value = 'clicked'">   perform ACTION with input link   </a>
+                `)
+        await user.open(server.url)
+        await user.doAction(' perform action with input LINK ')
 
         const result = await user.get('result')
         expect(result).to.equal('clicked')

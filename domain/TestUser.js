@@ -99,7 +99,7 @@ module.exports = async function () {
       const buttonText = await button.getText()
       const buttonDisabled = await button.getAttribute('disabled')
       if (buttonDisabled) return false
-      if (buttonText.toLowerCase() == description.toLowerCase()) return true
+      if (buttonText.toLowerCase().trim() == description.toLowerCase().trim()) return true
 
       const title = await button.getAttribute('title')
       return title.toLowerCase() == description.toLowerCase()
@@ -114,7 +114,7 @@ module.exports = async function () {
       const linkText = await link.getText()
       const isLinkDisabled = await link.getAttribute('disabled')
       if (isLinkDisabled) return false
-      if (linkText.toLowerCase() == description.toLowerCase()) return true
+      if (linkText.toLowerCase().trim() == description.toLowerCase().trim()) return true
 
       const title = await link.getAttribute('title')
       return title.toLowerCase() == description.toLowerCase()
