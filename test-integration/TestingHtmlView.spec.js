@@ -309,6 +309,19 @@ describe('testing html view', function () {
         expect(clicked).to.equal('clicked')
       })
 
+      it('must look also for matching title when content is an icon', async function () {
+        server.setBody(`
+                    <label for="result">Result</label>
+                    <input type="text" id="result">
+                    <button onclick="document.getElementById('result').value = 'clicked'" title="perform action with button"><span class="glyphicon"></span></button>
+                `)
+        await user.open(server.url)
+        await user.doAction('perform action with button')
+
+        const clicked = await user.get('result')
+        expect(clicked).to.equal('clicked')
+      })
+
       it('must click buttons which text is filled up to 1 second after loading the webpage', async function () {
         server.setBody(`
                     <script>setTimeout(function(){ document.getElementById('button1').innerText = 'perform action with button'}, 1000)</script>

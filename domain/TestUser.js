@@ -98,7 +98,11 @@ module.exports = async function () {
     const buttonOptions = await asyncFindAll(buttons, async function (button) {
       const buttonText = await button.getText()
       const buttonDisabled = await button.getAttribute('disabled')
-      return buttonText.toLowerCase() == description.toLowerCase() && !buttonDisabled
+      if (buttonDisabled) return false
+      if (buttonText.toLowerCase() == description.toLowerCase()) return true
+
+      const title = await button.getAttribute('title')
+      return title.toLowerCase() == description.toLowerCase()
     })
 
     return buttonOptions[0]
