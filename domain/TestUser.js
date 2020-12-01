@@ -1,171 +1,170 @@
-require('chromedriver');
-const {asyncFindAll} = require('async-javascript')
-const {Builder, By, Key, until} = require('selenium-webdriver');
-let chrome = require('selenium-webdriver/chrome');
+require('chromedriver')
+const { asyncFindAll } = require('async-javascript')
+const { Builder, By, Key, until } = require('selenium-webdriver')
+const chrome = require('selenium-webdriver/chrome')
 
-module.exports = async function(){
-    var driver = await getDriver()
+module.exports = async function () {
+  const driver = await getDriver()
 
-    var instance = Object.freeze({
-        open,
-        mustBeAbleTo,
-        get,
-        getValueFor: get,
-        set,
-        setValueFor: set,
-        doAction,
-        close
+  const instance = Object.freeze({
+    open,
+    mustBeAbleTo,
+    get,
+    getValueFor: get,
+    set,
+    setValueFor: set,
+    doAction,
+    close
+  })
+
+  async function open (url) {
+    await driver.get(url)
+  }
+
+  async function doAction (description) {
+    const option = await Promise.race([
+      waitTo(getActionButtonFor.bind(this, description)),
+      waitTo(getActionInputFor.bind(this, description)),
+      waitTo(getActionLinkFor.bind(this, description))
+    ])
+
+    if (!option) throw new Error(`user could not ${description}`)
+
+    await option.click()
+  }
+
+  async function set (property, value) {
+    const relatedInput = await getPropertyInput(property)
+    await relatedInput.clear()
+    await relatedInput.sendKeys(value)
+  }
+
+  async function get (property) {
+    const relatedInput = await getPropertyInput(property)
+    const relatedInputValue = await relatedInput.getAttribute('value')
+
+    return relatedInputValue
+  }
+
+  async function getPropertyInput (property) {
+    const labels = await driver.findElements(By.tagName('label'))
+    const propertyLabels = await asyncFindAll(labels, async function (label) {
+      const labelText = await label.getText()
+      return labelText.toLowerCase().replace(':', '') == property.toLowerCase()
     })
 
-    async function open(url){
-        await driver.get(url);
-    }
+    let relatedInput
 
-    async function doAction(description){
-        var option = await Promise.race([
-            waitTo(getActionButtonFor.bind(this, description)),
-            waitTo(getActionInputFor.bind(this, description)),
-            waitTo(getActionLinkFor.bind(this, description))
-        ])
-
-        if(!option) throw new Error(`user could not ${description}`)
-
-        await option.click()
-    }
-
-    async function set(property, value){
-        var relatedInput = await getPropertyInput(property)
-        await relatedInput.clear()
-        await relatedInput.sendKeys(value)
-    }
-
-    async function get(property){
-        var relatedInput = await getPropertyInput(property)
-        var relatedInputValue = await relatedInput.getAttribute('value')
-    
-        return relatedInputValue
-    }
-
-    async function getPropertyInput(property){
-        var labels = await driver.findElements(By.tagName('label'))
-        var propertyLabels = await asyncFindAll(labels, async function(label){
-            var labelText = await label.getText()
-            return labelText.toLowerCase().replace(':','') == property.toLowerCase()
-        })
-
-        var relatedInput
-
-        if(propertyLabels.length == 0){
-            //Look for placeholders in inputs
-            var inputs = await driver.findElements(By.tagName('input'))
-            var relatedInputs = await asyncFindAll(inputs, async function(input){
-                var inputType = await input.getAttribute('type')
-                if(inputType == 'text' || inputType == 'password'){
-                    var inputPlaceholder = await input.getAttribute('placeholder')
-                    return inputPlaceholder.toLowerCase() == property.toLowerCase()
-                }
-            })
-            
-            if(relatedInputs.length == 0) throw new Error(`Property "${property}" not found`)
-            relatedInput = relatedInputs[0]
+    if (propertyLabels.length == 0) {
+      // Look for placeholders in inputs
+      const inputs = await driver.findElements(By.tagName('input'))
+      var relatedInputs = await asyncFindAll(inputs, async function (input) {
+        const inputType = await input.getAttribute('type')
+        if (inputType == 'text' || inputType == 'password') {
+          const inputPlaceholder = await input.getAttribute('placeholder')
+          return inputPlaceholder.toLowerCase() == property.toLowerCase()
         }
-        else{
-            var propertyLabel = propertyLabels[0]
-            var relatedInputId = await propertyLabel.getAttribute('for')
-            var relatedInputs = await driver.findElements(By.id(relatedInputId))
-            if(relatedInputs.length == 0){
-                var propertyLabelText = await propertyLabel.getText()
-                throw new Error(`Missing input field for label "${propertyLabelText}"`)
-            }
+      })
 
-            relatedInput = relatedInputs[0]
-        }
+      if (relatedInputs.length == 0) throw new Error(`Property "${property}" not found`)
+      relatedInput = relatedInputs[0]
+    } else {
+      const propertyLabel = propertyLabels[0]
+      const relatedInputId = await propertyLabel.getAttribute('for')
+      var relatedInputs = await driver.findElements(By.id(relatedInputId))
+      if (relatedInputs.length == 0) {
+        const propertyLabelText = await propertyLabel.getText()
+        throw new Error(`Missing input field for label "${propertyLabelText}"`)
+      }
 
-        return relatedInput
+      relatedInput = relatedInputs[0]
     }
 
-    async function waitTo(fn){
-        try{
-            return await driver.wait(async function(){
-                return fn()
-            },2000)
-        }catch(e){
-            if(e.name != 'TimeoutError') throw e
-        }
+    return relatedInput
+  }
+
+  async function waitTo (fn) {
+    try {
+      return await driver.wait(async function () {
+        return fn()
+      }, 2000)
+    } catch (e) {
+      if (e.name != 'TimeoutError') throw e
     }
+  }
 
-    async function getActionButtonFor(description){
-        var buttons = await driver.findElements(By.tagName('button'))
-        var buttonOptions = await asyncFindAll(buttons, async function(button){
-            var buttonText = await button.getText()
-            var buttonDisabled = await button.getAttribute('disabled')
-            return buttonText.toLowerCase() == description.toLowerCase() && !buttonDisabled
-        })
+  async function getActionButtonFor (description) {
+    const buttons = await driver.findElements(By.tagName('button'))
+    const buttonOptions = await asyncFindAll(buttons, async function (button) {
+      const buttonText = await button.getText()
+      const buttonDisabled = await button.getAttribute('disabled')
+      return buttonText.toLowerCase() == description.toLowerCase() && !buttonDisabled
+    })
 
-        return buttonOptions[0]
+    return buttonOptions[0]
+  }
+
+  async function getActionLinkFor (description) {
+    const links = await driver.findElements(By.tagName('a'))
+    const linkOptions = await asyncFindAll(links, async function (link) {
+      const linkText = await link.getText()
+      const isLinkDisabled = await link.getAttribute('disabled')
+      if (isLinkDisabled) return false
+      if (linkText.toLowerCase() == description.toLowerCase()) return true
+
+      const title = await link.getAttribute('title')
+      return title.toLowerCase() == description.toLowerCase()
+    })
+
+    return linkOptions[0]
+  }
+
+  async function getActionInputFor (description) {
+    const inputs = await driver.findElements(By.tagName('input'))
+    const inputOptions = await asyncFindAll(inputs, async function (input) {
+      const inputType = await input.getAttribute('type')
+      if (inputType == 'button' || inputType == 'submit') {
+        const inputText = await input.getAttribute('value')
+        const inputDisabled = await input.getAttribute('disabled')
+        return inputText.toLowerCase() == description.toLowerCase() && !inputDisabled
+      }
+    })
+
+    return inputOptions[0]
+  }
+
+  async function mustBeAbleTo (description) {
+    const options = await Promise.race([
+      waitTo(getActionButtonFor.bind(this, description)),
+      waitTo(getActionInputFor.bind(this, description))])
+    if (!options || options.length == 0) throw new Error(`User is not able to ${description}`)
+  }
+
+  async function close () {
+    await driver.quit()
+  }
+
+  async function getDriver (retries) {
+    var retries = (retries == undefined) ? 3 : retries
+    let newDriver
+    try {
+      newDriver = await new Builder()
+        .forBrowser('chrome')
+        .setChromeOptions(new chrome.Options().headless())
+        .build()
+      return newDriver
+    } catch (e) {
+      // TODO implement abstract retry mechanism
+      if (retries == 0) throw e
+
+      return new Promise(function (resolve) {
+        setTimeout(async function () {
+          console.log('Error intializing webdriver. Retrying (Remaining retries: ', retries - 1, ')')
+          resolve(getDriver(retries - 1))
+        }, 200)
+      })
     }
+  }
 
-    async function getActionLinkFor(description){
-        var links = await driver.findElements(By.tagName('a'))
-        var linkOptions = await asyncFindAll(links, async function(link){
-            var linkText = await link.getText()
-            var isLinkDisabled = await link.getAttribute('disabled')
-            if(isLinkDisabled) return false
-            if(linkText.toLowerCase() == description.toLowerCase()) return true
-            
-            var title = await link.getAttribute('title')
-            return title.toLowerCase() == description.toLowerCase()
-        })
-
-        return linkOptions[0]
-    }
-
-    async function getActionInputFor(description){
-        var inputs = await driver.findElements(By.tagName('input'))
-        var inputOptions = await asyncFindAll(inputs, async function(input){
-            var inputType = await input.getAttribute('type')
-            if(inputType == 'button' || inputType == 'submit'){
-                var inputText = await input.getAttribute('value')
-                var inputDisabled = await input.getAttribute('disabled')
-                return inputText.toLowerCase() == description.toLowerCase() && !inputDisabled
-            }
-        })
-
-        return inputOptions[0]
-    }
-
-    async function mustBeAbleTo(description){
-            var options = await Promise.race([
-                waitTo(getActionButtonFor.bind(this, description)),
-                waitTo(getActionInputFor.bind(this, description))])           
-            if(!options || options.length == 0) throw new Error(`User is not able to ${description}`)
-    }
-
-    async function close(){
-        await driver.quit()
-    }
-
-    async function getDriver(retries){
-        var retries = (retries == undefined)?3:retries
-        var newDriver
-        try{
-            newDriver = await new Builder()
-            .forBrowser('chrome')
-            .setChromeOptions(new chrome.Options().headless())
-            .build();
-            return newDriver
-        }catch(e){
-            //TODO implement abstract retry mechanism
-            if(retries == 0) throw e
-
-            return new Promise(function(resolve){
-                setTimeout(async function(){
-                    console.log('Error intializing webdriver. Retrying (Remaining retries: ', retries-1, ')')
-                    resolve(getDriver(retries-1))
-                }, 200)
-            })
-        }
-    }
-
-    return instance
+  return instance
 }

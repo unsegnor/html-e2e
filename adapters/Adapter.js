@@ -1,5 +1,5 @@
-module.exports = function(){
-    return Object.freeze({
-        
-    })
+module.exports = function () {
+  return Object.freeze({
+
+  })
 }

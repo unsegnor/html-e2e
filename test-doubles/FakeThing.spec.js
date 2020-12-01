@@ -1,3 +1,3 @@
-describe('Fake Thing', function(){
-    it('must behave as a thing')
+describe('Fake Thing', function () {
+  it('must behave as a thing')
 })

@@ -1,3 +1,3 @@
 module.exports = {
-    TestUser: require('./domain/TestUser')
+  TestUser: require('./domain/TestUser')
 }
