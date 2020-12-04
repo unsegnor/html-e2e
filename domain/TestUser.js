@@ -87,7 +87,7 @@ module.exports = async function () {
     try {
       return await driver.wait(async function () {
         return fn()
-      }, 2000)
+      }, 5000)
     } catch (e) {
       if (e.name != 'TimeoutError') throw e
     }
