@@ -14,7 +14,7 @@
     "@stryker-mutator/javascript-mutator": "2.5.0",
     "@stryker-mutator/mocha-framework": "2.5.0",
     "@stryker-mutator/mocha-runner": "2.5.0",
-    "chai": "4.2.0",
+    "chai": "4.3.4",
     "cucumber": "5.1.0",
     "expect-to-throw": "3.0.2",
     "express": "4.17.1",
