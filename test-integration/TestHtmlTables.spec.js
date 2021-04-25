@@ -58,7 +58,7 @@ describe('testing html tables', function () {
         var rows = await user.get('rows')
       })
     })
-    xit('must throw when the table has no rows at all', async function () {
+    it('must throw when the table has no rows at all', async function () {
       await expectToThrow('Missing header row on the table "rows"', async function(){
         await server.setBody(`
                     <table>
@@ -70,7 +70,7 @@ describe('testing html tables', function () {
         var lastRow = await rows.last()
       })
     })
-    xit('must throw when the table has header but not rows', async function () {
+    it('must throw when the table has header but not rows', async function () {
       await expectToThrow('No rows on the table "rows"', async function(){
         await server.setBody(`
                     <table>
