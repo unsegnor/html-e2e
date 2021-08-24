@@ -13,7 +13,7 @@
     "@stryker-mutator/core": "2.5.0",
     "@stryker-mutator/javascript-mutator": "2.5.0",
     "@stryker-mutator/mocha-framework": "2.5.0",
-    "@stryker-mutator/mocha-runner": "2.5.0",
+    "@stryker-mutator/mocha-runner": "5.3.0",
     "chai": "4.3.4",
     "cucumber": "6.0.5",
     "expect-to-throw": "3.0.2",
