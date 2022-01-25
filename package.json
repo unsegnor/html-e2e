@@ -12,7 +12,7 @@
   "devDependencies": {
     "@stryker-mutator/core": "5.6.1",
     "@stryker-mutator/mocha-runner": "5.6.1",
-    "chai": "4.3.4",
+    "chai": "4.3.5",
     "cucumber": "6.0.5",
     "expect-to-throw": "3.0.2",
     "express": "4.17.2",
