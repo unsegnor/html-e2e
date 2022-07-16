@@ -17,11 +17,9 @@
     "expect-to-throw": "3.0.2",
     "express": "4.18.1",
     "get-port": "5.1.1",
-    "mocha": "10.0.0",
-    "release-it": "15.1.2"
+    "mocha": "10.0.0"
   },
   "scripts": {
-    "release": "release-it",
     "test": "npm run test-mocha && npm run test-cucumber",
     "test-mocha": "npm run test-doubles && npm run test-domain && npm run test-adapters && npm run test-integration",
     "test-domain": "mocha domain --recursive",
@@ -30,7 +28,6 @@
     "test-integration": "mocha test-integration --recursive --timeout 60000",
     "test-mutation": "npx stryker run",
     "test-cucumber": "cucumber-js",
-    "configure-deployment": "gem install travis && travis setup npm --com",
     "patch": "npm version patch && git push --follow-tags",
     "minor": "npm version minor && git push --follow-tags",
     "standard": "standard"
