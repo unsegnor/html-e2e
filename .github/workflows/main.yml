@@ -27,7 +27,7 @@ jobs:
       - name: "Setup Node.js"
         uses: actions/setup-node@v3
         with:
-          node-version: "$(cat .nvmrc)"
+          node-version: ${{ steps.read_nvmrc.outputs.node_version }}
           registry-url: 'https://registry.npmjs.org'
       
       #Run tests
