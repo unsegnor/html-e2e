@@ -24,7 +24,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       
       #Run tests
-      - run: npm ci
+      - run: npm i
       - run: npm test
 
       #Increase version in main branch
