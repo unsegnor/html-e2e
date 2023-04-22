@@ -1,29 +1,10 @@
-[![Build Status](https://travis-ci.org/unsegnor/new-app.svg?branch=master)](https://travis-ci.org/unsegnor/new-app)
 
-# new-app
-New application schema with:
-- Cucumber tests
-- Integration tests
-- Unit tests
-- Mutation testing
-- Ports and adapters templates
-- Travis yaml
-- Script for configuring npm deployment
+# Html-e2e
+Library to run e2e tests against html writing them interface-agnostic. For example instead of calling the "click()" method on a "save" button we can call "do('save')" and it will look for buttons or links that can be clicked and contain the text "save".
 
 ## Getting started
-1. Rename the product name on package.json
-2. Set the repository, bugs and homepage urls
-3. Set the keywords, description and author
-
-## Seting npm deployment
-
-    npm run configure-deployment
+Check the integration tests for examples of usage
 
 ## Run all tests
 
     npm test
-
-## Publish a patch on npm
-Once you have made and commited your changes run:
-
-    npm run patch

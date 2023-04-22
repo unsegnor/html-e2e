@@ -1,0 +1,51 @@
+name: "Test and publish"
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: "Test and publish"
+    runs-on: ubuntu-latest
+
+    steps:
+      #Prepare node environment
+      - name: "Checkout source code"
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Read Node.js version from .nvmrc
+        id: read_nvmrc
+        run: |
+          echo "::set-output name=node_version::$(cat .nvmrc)"
+        
+
+      - name: "Setup Node.js"
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ steps.read_nvmrc.outputs.node_version }}
+          registry-url: 'https://registry.npmjs.org'
+      
+      #Run tests
+      - run: npm ci
+      - run: npm test
+
+      #Increase version in main branch
+      - name: "Automated Version Bump"
+        if: github.ref == 'refs/heads/master'
+        id: version-bump
+        uses: "phips28/gh-action-bump-version@master"
+        with:
+          tag-prefix: ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      #Publish to npm in main branch
+      - run: npm publish
+        if: github.ref == 'refs/heads/master'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
