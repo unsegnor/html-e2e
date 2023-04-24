@@ -118,32 +118,32 @@ describe('testing html view', function () {
     describe('when the property is in a label', function () {
       it('must return the input value', async function () {
         await server.setBody(`
-                    <label for="age">age</label>
-                    <input type="text" id="age" value="18">`)
+                    <label for="any_id">age</label>
+                    <input type="text" id="any_id" value="18">`)
         await user.open(server.url)
         const age = await user.get('age')
         expect(age).to.equal('18')
       })
       it('must ignore case to match property and label', async function () {
         await server.setBody(`
-                    <label for="age">Age</label>
-                    <input type="text" id="age" value="18">`)
+                    <label for="any_id">Age</label>
+                    <input type="text" id="any_id" value="18">`)
         await user.open(server.url)
         const age = await user.get('agE')
         expect(age).to.equal('18')
       })
       it('must ignore spaces to match property and label', async function () {
         await server.setBody(`
-                    <label for="age"> age </label>
-                    <input type="text" id="age" value="18">`)
+                    <label for="any_id"> age </label>
+                    <input type="text" id="any_id" value="18">`)
         await user.open(server.url)
         const age = await user.get('age')
         expect(age).to.equal('18')
       })
       it('must ignore colon to match property and label', async function () {
         await server.setBody(`
-                    <label for="age"> Age: </label>
-                    <input type="text" id="age" value="18">`)
+                    <label for="any_id"> Age: </label>
+                    <input type="text" id="any_id" value="18">`)
         await user.open(server.url)
         const age = await user.get('age')
         expect(age).to.equal('18')
@@ -158,8 +158,8 @@ describe('testing html view', function () {
       })
       it('must throw when the label includes the property but is not the entire word', async function () {
         await server.setBody(`
-                    <label for="age"> Marriage: </label>
-                    <input type="text" id="age" value="18">`)
+                    <label for="any_id"> Marriage: </label>
+                    <input type="text" id="any_id" value="18">`)
         await user.open(server.url)
 
         await expectToThrow('property "age" not found', async function () {
