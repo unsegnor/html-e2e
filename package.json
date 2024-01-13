@@ -1,6 +1,6 @@
 {
   "name": "html-e2e",
-  "version": "1.14.119",
+  "version": "1.14.120",
   "description": "Tools for e2e functional testing through HTMl views",
   "main": "index.js",
   "dependencies": {
