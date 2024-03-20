@@ -15,7 +15,7 @@
     "chai": "4.4.1",
     "cucumber": "6.0.7",
     "expect-to-throw": "3.0.45",
-    "express": "4.18.3",
+    "express": "4.19.0",
     "get-port": "5.1.1",
     "mocha": "10.3.0"
   },
