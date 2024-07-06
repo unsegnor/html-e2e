@@ -152,7 +152,7 @@ module.exports = async function () {
     var retries = (retries == undefined) ? 3 : retries
     let newDriver
     try {
-      var options = new chrome.Options()
+      let options = new chrome.Options()
       options.addArguments('--headless')
       newDriver = await new Builder()
         .forBrowser('chrome')
