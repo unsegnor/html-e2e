@@ -1,0 +1,45 @@
+chatgpt proposal to improve the interface
+
+
+class AsyncWrapper {
+  constructor(promise) {
+    this.promise = promise;
+  }
+  
+  async _resolve() {
+    if (this.promise instanceof AsyncWrapper) {
+      this.promise = await this.promise._resolve();
+    }
+
+    return this.promise;
+  }
+
+  async last() {
+    const value = await this._resolve();
+
+    return new AsyncWrapper(value.last());
+  }
+
+  async getValue() {
+    const value = await this._resolve();
+
+    return value.getValue();
+  }
+}
+
+class User {
+  // ...
+
+  get(prop) {
+    return new AsyncWrapper(this._get(prop));
+  }
+
+  _get(prop) {
+    // ... the original get method
+  }
+  
+  // ... rest of the class
+}
+
+// usage
+let value = await user.get('rows').last().getValue();
