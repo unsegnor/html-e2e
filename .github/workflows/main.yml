@@ -12,11 +12,11 @@ jobs:
       matrix:
         chrome-version:
           - latest
-          - 9462d8f6-ls89
+          - 128.0
 
     runs-on: ubuntu-latest
     container:
-      image: chromium:${{ matrix.chrome-version }}
+      image: selenium/node-chrome:${{ matrix.chrome-version }}
 
     steps:
       #Prepare node environment
