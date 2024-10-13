@@ -8,8 +8,15 @@ on:
 
 jobs:
   build:
-    name: "Test and publish"
+    strategy:
+      matrix:
+        chrome-version:
+          - latest
+          - 9462d8f6-ls89
+
     runs-on: ubuntu-latest
+    container:
+      image: chromium:${{ matrix.chrome-version }}
 
     steps:
       #Prepare node environment
