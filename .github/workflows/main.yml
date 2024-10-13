@@ -11,8 +11,8 @@ jobs:
     strategy:
       matrix:
         chrome-version:
-          - latest
-          - 128.0
+          - "latest"
+          - "128.0"
 
     runs-on: ubuntu-latest
     container:
