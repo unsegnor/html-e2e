@@ -8,7 +8,10 @@ const { Builder, By, Key, until } = require('selenium-webdriver')
 const chrome = require('selenium-webdriver/chrome')
 let isChromedriverInstalled = false
 
-module.exports = async function () {
+module.exports = async function (testUserOptions) {
+  let _testUserOptions = testUserOptions ?? {showBrowser: false}
+  let _showBrowser = _testUserOptions.showBrowser
+
   const driver = await getDriver()
 
   const instance = Object.freeze({
@@ -167,7 +170,7 @@ module.exports = async function () {
     let newDriver
     try {
       let options = new chrome.Options()
-      options.addArguments('--headless')
+      if(!_showBrowser) options.addArguments('--headless')
       newDriver = await new Builder()
         .forBrowser('chrome')
         .setChromeOptions(options)
