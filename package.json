@@ -5,7 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "async-javascript": "^1.3.1",
-    "chromedriver": "^129.0.0",
+    "chromedriver": "latest",
     "selenium-webdriver": "^4.0.0-beta",
     "standard": "^17.0.0"
   },
