@@ -1,7 +1,12 @@
-require('chromedriver')
+let previousNodeEnv = process.env.NODE_ENV
+process.env.NODE_ENV = 'test' //this is needed to get the install file from chromedriver/install
+const ChromedriverInstaller = require('chromedriver/install')
+process.env.NODE_ENV = previousNodeEnv
+
 const { asyncFindAll } = require('async-javascript')
 const { Builder, By, Key, until } = require('selenium-webdriver')
 const chrome = require('selenium-webdriver/chrome')
+let isChromedriverInstalled = false
 
 module.exports = async function () {
   const driver = await getDriver()
@@ -148,7 +153,16 @@ module.exports = async function () {
     await driver.quit()
   }
 
+  async function ensureChromeDriverIsInstalled(){
+    if(!isChromedriverInstalled){
+      const installer = new ChromedriverInstaller()
+      await installer.install()
+      isChromedriverInstalled = true
+    }
+  }
+
   async function getDriver (retries) {
+    await ensureChromeDriverIsInstalled()
     var retries = (retries == undefined) ? 3 : retries
     let newDriver
     try {

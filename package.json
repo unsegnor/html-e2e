@@ -20,7 +20,6 @@
     "mocha": "10.7.3"
   },
   "scripts": {
-    "postinstall": "npm install chromedriver --detect_chromedriver_version",
     "test": "npm run test-mocha && npm run test-cucumber && npm run test-package",
     "test-package": "npm pack && cd test-package && npm install ../html-e2e-${npm_package_version}.tgz --no-save --package-lock false && mocha tests.spec.js --timeout 20000",
     "test-mocha": "npm run test-doubles && npm run test-domain && npm run test-adapters && npm run test-integration",
