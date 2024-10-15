@@ -21,6 +21,8 @@ describe('testing html view', function () {
   // TODO explore combinations of tests according to dimensions:
   // method, type of element, asynchronous loaded, after web load, after action, case sensitive, element does not exist, exists once, exists twice, added spaces in the name
   // try with all combinations and pairwise
+  //identifier: label, placeholder
+  //element type: text, textarea, pass option...
 
   describe('mustBeAbleTo', function () {
     describe('must find options', function () {
@@ -115,13 +117,8 @@ describe('testing html view', function () {
     })
   })
 
-//TODO: add support for textarea
 //TODO: add support for progress
 //TODO: add support for tables
-
-//identifier: label, placeholder
-//element type: text, textarea, option
-
 
 function generateInputWithLabel({type, label='anyLabel:', value='anyValue', inputId='any_id', labelFor=inputId}){
   let labelhtml = `<label for="${labelFor}">${label}</label>`
@@ -200,9 +197,6 @@ for(let elementType of [
         }
       })
   })
-
-  //TODO: parametrize label text: Age, age, aGe, spaces, colon, several words...
-  //TODO: parametrize placeholder?
 
   describe('set', function () {
     describe(`when the identifier of ${elementType} element is in a label`, function () {
