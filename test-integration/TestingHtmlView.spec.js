@@ -194,16 +194,15 @@ for(let elementType of [
             const age = await user.get(placeholderTestCase.property)
             expect(age).to.equal('18')
           })
-
-          it(`must return the input value ${placeholderTestCase.condition} when there is another ${elementType} element without placeholder`, async function () {
-            let body = generateInput({type: elementType}) +
-            generateInput({type: elementType, placeholder: placeholderTestCase.labelName, value: '18'})
-            await server.setBody(body)
-            await user.open(server.url)
-            const age = await user.get(placeholderTestCase.property)
-            expect(age).to.equal('18')
-          })
         }
+        it(`must return the input value when there is another ${elementType} element without placeholder`, async function () {
+          let body = generateInput({type: elementType}) +
+          generateInput({type: elementType, placeholder: 'age', value: '18'})
+          await server.setBody(body)
+          await user.open(server.url)
+          const age = await user.get('age')
+          expect(age).to.equal('18')
+        })
       })
   })
 
