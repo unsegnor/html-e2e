@@ -74,6 +74,15 @@ module.exports = async function (testUserOptions) {
         }
       })
 
+      if (relatedInputs.length == 0){
+        //Look for placeholders in textarea
+        const textAreas = await driver.findElements(By.tagName('textarea'))
+        relatedInputs = await asyncFindAll(textAreas, async function (textarea) {
+            const inputPlaceholder = await textarea.getAttribute('placeholder')
+            return inputPlaceholder.toLowerCase() == property.toLowerCase()
+        })
+      }
+
       if (relatedInputs.length == 0) throw new Error(`Property "${property}" not found`)
       relatedInput = relatedInputs[0]
     } else {
