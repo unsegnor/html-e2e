@@ -123,7 +123,7 @@ describe('testing html view', function () {
 //element type: text, textarea, option
 
 
-function generateInputWithLabel({type, label='Age:', value='18', inputId='any_id', labelFor=inputId}){
+function generateInputWithLabel({type, label='anyLabel:', value='anyValue', inputId='any_id', labelFor=inputId}){
   let labelhtml = `<label for="${labelFor}">${label}</label>`
   let inputElement = generateInput({type, value, id:inputId})
   return `${labelhtml}${inputElement}`
@@ -183,8 +183,8 @@ function generateInput({type, value, id, placeholder}){
             await user.get('age')
           })
         })
-        it('must throw when the field related to the label does not exist', async function () {
-          await server.setBody(generateInputWithLabel({type: elementType, inputId: 'age', labelFor: 'notexistingField'}))
+        it.only('must throw when the field related to the label does not exist', async function () {
+          await server.setBody(generateInputWithLabel({type: elementType, label: 'Age:', inputId: 'age', labelFor: 'notexistingField'}))
           await user.open(server.url)
   
           await expectToThrow('missing input field for label "Age:"', async function () {
@@ -208,6 +208,9 @@ function generateInput({type, value, id, placeholder}){
       })
     }
   })
+
+  //TODO: parametrize label text: Age, age, aGe, spaces, colon, several words...
+  //TODO: parametrize placeholder?
 
   describe('set', function () {
     describe('when the property is in a label', function () {
