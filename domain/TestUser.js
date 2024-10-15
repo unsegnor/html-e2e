@@ -54,14 +54,14 @@ module.exports = async function (testUserOptions) {
     return relatedInputValue
   }
 
-  async function getPropertyInput (property) {
+  async function getInputLookingForLabels(property){
+    let relatedInput
+
     const labels = await driver.findElements(By.css('label'))
     const propertyLabels = await asyncFindAll(labels, async function (label) {
       const labelText = await label.getText()
       return labelText.toLowerCase().replace(':', '') == property.toLowerCase()
     })
-
-    let relatedInput
 
     if (propertyLabels.length > 0){
       const propertyLabel = propertyLabels[0]
@@ -73,30 +73,43 @@ module.exports = async function (testUserOptions) {
       }
 
       relatedInput = relatedInputs[0]
-    }else{
-      // Look for placeholders in inputs
-      const inputs = await driver.findElements(By.css('input'))
-      var relatedInputs = await asyncFindAll(inputs, async function (input) {
-        const inputType = await input.getAttribute('type')
-        if (inputType == 'text' || inputType == 'password') {
-          const inputPlaceholder = await input.getAttribute('placeholder')
+    }
+
+    return relatedInput
+  }
+
+  async function getInputLookingForPlaceholders(property){
+    let relatedInput
+    // Look for placeholders in inputs
+    const inputs = await driver.findElements(By.css('input'))
+    var relatedInputs = await asyncFindAll(inputs, async function (input) {
+      const inputType = await input.getAttribute('type')
+      if (inputType == 'text' || inputType == 'password') {
+        const inputPlaceholder = await input.getAttribute('placeholder')
+        return inputPlaceholder.toLowerCase() == property.toLowerCase()
+      }
+    })
+
+    if (relatedInputs.length == 0){
+      //Look for placeholders in textarea
+      const textAreas = await driver.findElements(By.css('textarea'))
+      relatedInputs = await asyncFindAll(textAreas, async function (textarea) {
+          const inputPlaceholder = await textarea.getAttribute('placeholder')
           return inputPlaceholder.toLowerCase() == property.toLowerCase()
-        }
       })
 
-      if (relatedInputs.length == 0){
-        //Look for placeholders in textarea
-        const textAreas = await driver.findElements(By.css('textarea'))
-        relatedInputs = await asyncFindAll(textAreas, async function (textarea) {
-            const inputPlaceholder = await textarea.getAttribute('placeholder')
-            return inputPlaceholder.toLowerCase() == property.toLowerCase()
-        })
-      }
-
-      if (relatedInputs.length == 0) throw new Error(`Property "${property}" not found`)
+      if (relatedInputs.length > 0) relatedInput = relatedInputs[0]
+    }else{
       relatedInput = relatedInputs[0]
     }
 
+    return relatedInput
+  }
+
+  async function getPropertyInput (property) {
+    let relatedInput = await getInputLookingForLabels(property)
+    if (!relatedInput) relatedInput = await getInputLookingForPlaceholders(property)
+    if (!relatedInput) throw new Error(`Property "${property}" not found`)
     return relatedInput
   }
 
