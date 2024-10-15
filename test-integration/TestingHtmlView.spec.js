@@ -149,7 +149,7 @@ const labelTestCases = [
   {condition: 'ignoring colon', labelName:' Age: ', property: 'age'}, 
 ]
 
-const paceholderTestCases = [
+const placeholderTestCases = [
   ...identifierTestCases,
   {condition: 'ignoring dots', labelName:' Age... ', property: 'age'},
 ]
@@ -187,9 +187,18 @@ for(let elementType of [
         })
       })
       describe(`when the identifier of ${elementType} element is in a placeholder`, function () {
-        for(let placeholderTestCase of paceholderTestCases){
+        for(let placeholderTestCase of placeholderTestCases){
           it(`must return the input value ${placeholderTestCase.condition}`, async function () {
             await server.setBody(generateInput({type: elementType, placeholder: placeholderTestCase.labelName, value: '18'}))
+            await user.open(server.url)
+            const age = await user.get(placeholderTestCase.property)
+            expect(age).to.equal('18')
+          })
+
+          it(`must return the input value ${placeholderTestCase.condition} when there is another ${elementType} element without placeholder`, async function () {
+            let body = generateInput({type: elementType}) +
+            generateInput({type: elementType, placeholder: placeholderTestCase.labelName, value: '18'})
+            await server.setBody(body)
             await user.open(server.url)
             const age = await user.get(placeholderTestCase.property)
             expect(age).to.equal('18')
@@ -228,7 +237,7 @@ for(let elementType of [
       })
     })
     describe(`when the identifier of ${elementType} element is in a placeholder`, function () {
-      for(let placeholderTestCase of paceholderTestCases){
+      for(let placeholderTestCase of placeholderTestCases){
         it(`must set the value ${placeholderTestCase.condition}`, async function () {
           await server.setBody(generateInput({type: elementType, placeholder: placeholderTestCase.labelName, value: 'oldvalue'}))
           await user.open(server.url)
