@@ -2,6 +2,7 @@ const { TestUser } = require('../index')
 const { expect } = require('chai')
 const FakeServer = require('./FakeServer')
 const expectToThrow = require('expect-to-throw')
+const crypto = require('crypto');
 
 describe('testing html view', function () {
   let server, user
@@ -114,89 +115,94 @@ describe('testing html view', function () {
     })
   })
 
+//TODO: add support for textarea
+//TODO: add support for progress
+//TODO: add support for tables
+
+//identifier: label, placeholder
+//element type: text, textarea, option
+
+
+function generateInputWithLabel({type, label='Age:', value='18', inputId='any_id', labelFor=inputId}){
+  let labelhtml = `<label for="${labelFor}">${label}</label>`
+  let inputElement = generateInput({type, value, id:inputId})
+  return `${labelhtml}${inputElement}`
+}
+
+function generateInput({type, value, id, placeholder}){
+  let placeholderHtml = placeholder ? `placeholder="${placeholder}"` : ''
+  let _id = id ?? crypto.randomUUID()
+  if (type == 'textarea') return `<textarea id="${_id}" ${placeholderHtml}>${value}</textarea>`
+  if (type == 'text')  return `<input type="text" id="${_id}" value="${value}" ${placeholderHtml}>`
+  if (type == 'password')  return `<input type="password" id="${_id}" value="${value}" ${placeholderHtml}>`
+  throw new Error(`Unsupported type ${type}`)
+}
+
   describe('get', function () {
-    describe('when the property is in a label', function () {
-      it('must return the input value', async function () {
-        await server.setBody(`
-                    <label for="any_id">age</label>
-                    <input type="text" id="any_id" value="18">`)
-        await user.open(server.url)
-        const age = await user.get('age')
-        expect(age).to.equal('18')
-      })
-      it('must ignore case to match property and label', async function () {
-        await server.setBody(`
-                    <label for="any_id">Age</label>
-                    <input type="text" id="any_id" value="18">`)
-        await user.open(server.url)
-        const age = await user.get('agE')
-        expect(age).to.equal('18')
-      })
-      it('must ignore spaces to match property and label', async function () {
-        await server.setBody(`
-                    <label for="any_id"> age </label>
-                    <input type="text" id="any_id" value="18">`)
-        await user.open(server.url)
-        const age = await user.get('age')
-        expect(age).to.equal('18')
-      })
-      it('must ignore colon to match property and label', async function () {
-        await server.setBody(`
-                    <label for="any_id"> Age: </label>
-                    <input type="text" id="any_id" value="18">`)
-        await user.open(server.url)
-        const age = await user.get('age')
-        expect(age).to.equal('18')
-      })
-      it('must work with several words', async function () {
-        await server.setBody(`
-                    <label for="date-of-birth"> Date of birth: </label>
-                    <input type="text" id="date-of-birth" value="1987-01-23">`)
-        await user.open(server.url)
-        const dateOfBirth = await user.get('date of birth')
-        expect(dateOfBirth).to.equal('1987-01-23')
-      })
-      it('must throw when the label includes the property but is not the entire word', async function () {
-        await server.setBody(`
-                    <label for="any_id"> Marriage: </label>
-                    <input type="text" id="any_id" value="18">`)
-        await user.open(server.url)
-
-        await expectToThrow('property "age" not found', async function () {
-          await user.get('age')
+    for(let elementType of ['text', 'textarea', 'password']){
+      describe(`when the identifier of ${elementType} element is in a label`, function () {
+        it('must return the input value', async function () {
+          await server.setBody(generateInputWithLabel({type: elementType, label: 'age', value: '18'}))
+          await user.open(server.url)
+          const age = await user.get('age')
+          expect(age).to.equal('18')
+        })
+        it('must ignore case to match property and label', async function () {
+          await server.setBody(generateInputWithLabel({type: elementType, label: 'Age', value: '18'}))
+          await user.open(server.url)
+          const age = await user.get('agE')
+          expect(age).to.equal('18')
+        })
+        it('must ignore spaces to match property and label', async function () {
+          await server.setBody(generateInputWithLabel({type: elementType, label: ' age ', value: '18'}))
+          await user.open(server.url)
+          const age = await user.get('age')
+          expect(age).to.equal('18')
+        })
+        it('must ignore colon to match property and label', async function () {
+          await server.setBody(generateInputWithLabel({type: elementType, label: ' Age: ', value: '18'}))
+          await user.open(server.url)
+          const age = await user.get('age')
+          expect(age).to.equal('18')
+        })
+        it('must work with several words', async function () {
+          await server.setBody(generateInputWithLabel({type: elementType, label: ' Date of birth: ', value: '1987-01-23', inputId: 'date-of-birth'}))
+          await user.open(server.url)
+          const dateOfBirth = await user.get('date of birth')
+          expect(dateOfBirth).to.equal('1987-01-23')
+        })
+        it('must throw when the label includes the property but is not the entire word', async function () {
+          await server.setBody(generateInputWithLabel({type: elementType, label: 'Marriage:', value: '1987-01-23'}))
+          await user.open(server.url)
+  
+          await expectToThrow('property "age" not found', async function () {
+            await user.get('age')
+          })
+        })
+        it('must throw when the field related to the label does not exist', async function () {
+          await server.setBody(generateInputWithLabel({type: elementType, inputId: 'age', labelFor: 'notexistingField'}))
+          await user.open(server.url)
+  
+          await expectToThrow('missing input field for label "Age:"', async function () {
+            await user.get('age')
+          })
         })
       })
-      it('must throw when the field related to the label does not exist', async function () {
-        await server.setBody(`
-                    <label for="notexistingField"> Age: </label>
-                    <input type="text" id="age" value="18">`)
-        await user.open(server.url)
-
-        await expectToThrow('missing input field for label "Age:"', async function () {
-          await user.get('age')
+      describe(`when the identifier of ${elementType} element is in a placeholder`, function () {
+        it('must return the input value', async function () {
+          await server.setBody(generateInput({type: elementType, placeholder: 'age', value: '18'}))
+          await user.open(server.url)
+          const age = await user.get('age')
+          expect(age).to.equal('18')
+        })
+        it('must ignore case to match property and placeholder', async function () {
+          await server.setBody(generateInput({type: elementType, placeholder: 'Age', value: '18'}))
+          await user.open(server.url)
+          const age = await user.get('agE')
+          expect(age).to.equal('18')
         })
       })
-    })
-    describe('when the property is in a placeholder', function () {
-      it('must return the input value', async function () {
-        await server.setBody('<input placeholder="age" type="text" value="18">')
-        await user.open(server.url)
-        const age = await user.get('age')
-        expect(age).to.equal('18')
-      })
-      it('must ignore case to match property and placeholder', async function () {
-        await server.setBody('<input placeholder="Age" type="text" value="18">')
-        await user.open(server.url)
-        const age = await user.get('agE')
-        expect(age).to.equal('18')
-      })
-      it('must work with password inputs', async function () {
-        await server.setBody('<input placeholder="pass" type="password" value="blablabla">')
-        await user.open(server.url)
-        const pass = await user.get('pass')
-        expect(pass).to.equal('blablabla')
-      })
-    })
+    }
   })
 
   describe('set', function () {
