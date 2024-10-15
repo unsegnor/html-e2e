@@ -183,7 +183,7 @@ function generateInput({type, value, id, placeholder}){
             await user.get('age')
           })
         })
-        it.only('must throw when the field related to the label does not exist', async function () {
+        it('must throw when the field related to the label does not exist', async function () {
           await server.setBody(generateInputWithLabel({type: elementType, label: 'Age:', inputId: 'age', labelFor: 'notexistingField'}))
           await user.open(server.url)
   
