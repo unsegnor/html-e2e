@@ -139,7 +139,11 @@ function generateInput({type, value, id, placeholder}){
 }
 
   describe('get', function () {
-    for(let elementType of ['text', 'textarea', 'password']){
+    for(let elementType of [
+      'text',
+      'textarea',
+      'password'
+    ]){
       describe(`when the identifier of ${elementType} element is in a label`, function () {
         it('must return the input value', async function () {
           await server.setBody(generateInputWithLabel({type: elementType, label: 'age', value: '18'}))
