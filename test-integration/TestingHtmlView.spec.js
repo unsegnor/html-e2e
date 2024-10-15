@@ -138,6 +138,25 @@ function generateInput({type, value, id, placeholder}){
   throw new Error(`Unsupported type ${type}`)
 }
 
+//TODO: get all the data in the test from the testCase and make a testCase generator to generate all of them according to some testing rules (like textarea has no placeholder)
+
+const identifierTestCases = [
+  {condition: '', labelName:'age', property: 'age'},
+  {condition: 'ignoring case', labelName:'Age', property: 'agE'},
+  {condition: 'ignoring spaces', labelName:' age ', property: 'age'},
+  {condition: 'with several words', labelName:' Date of birth ', property: 'date of birth'},
+]
+
+const labelTestCases = [
+  ...identifierTestCases,
+  {condition: 'ignoring colon', labelName:' Age: ', property: 'age'}, 
+]
+
+const paceholderTestCases = [
+  ...identifierTestCases,
+  {condition: 'ignoring dots', labelName:' Age... ', property: 'age'},
+]
+
 for(let elementType of [
   'text',
   'textarea',
@@ -145,36 +164,14 @@ for(let elementType of [
 ]){
   describe('get', function () {
       describe(`when the identifier of ${elementType} element is in a label`, function () {
-        it('must return the input value', async function () {
-          await server.setBody(generateInputWithLabel({type: elementType, label: 'age', value: '18'}))
-          await user.open(server.url)
-          const age = await user.get('age')
-          expect(age).to.equal('18')
-        })
-        it('must ignore case to match property and label', async function () {
-          await server.setBody(generateInputWithLabel({type: elementType, label: 'Age', value: '18'}))
-          await user.open(server.url)
-          const age = await user.get('agE')
-          expect(age).to.equal('18')
-        })
-        it('must ignore spaces to match property and label', async function () {
-          await server.setBody(generateInputWithLabel({type: elementType, label: ' age ', value: '18'}))
-          await user.open(server.url)
-          const age = await user.get('age')
-          expect(age).to.equal('18')
-        })
-        it('must ignore colon to match property and label', async function () {
-          await server.setBody(generateInputWithLabel({type: elementType, label: ' Age: ', value: '18'}))
-          await user.open(server.url)
-          const age = await user.get('age')
-          expect(age).to.equal('18')
-        })
-        it('must work with several words', async function () {
-          await server.setBody(generateInputWithLabel({type: elementType, label: ' Date of birth: ', value: '1987-01-23', inputId: 'date-of-birth'}))
-          await user.open(server.url)
-          const dateOfBirth = await user.get('date of birth')
-          expect(dateOfBirth).to.equal('1987-01-23')
-        })
+        for(let labelTestCase of labelTestCases){
+          it(`must return the input value ${labelTestCase.condition}`, async function () {
+            await server.setBody(generateInputWithLabel({type: elementType, label: labelTestCase.labelName, value: '18'}))
+            await user.open(server.url)
+            const age = await user.get(labelTestCase.property)
+            expect(age).to.equal('18')
+          })
+        }
         it('must throw when the label includes the property but is not the entire word', async function () {
           await server.setBody(generateInputWithLabel({type: elementType, label: 'Marriage:', value: '1987-01-23'}))
           await user.open(server.url)
@@ -193,20 +190,15 @@ for(let elementType of [
         })
       })
       describe(`when the identifier of ${elementType} element is in a placeholder`, function () {
-        it('must return the input value', async function () {
-          await server.setBody(generateInput({type: elementType, placeholder: 'age', value: '18'}))
-          await user.open(server.url)
-          const age = await user.get('age')
-          expect(age).to.equal('18')
-        })
-        it('must ignore case to match property and placeholder', async function () {
-          await server.setBody(generateInput({type: elementType, placeholder: 'Age', value: '18'}))
-          await user.open(server.url)
-          const age = await user.get('agE')
-          expect(age).to.equal('18')
-        })
+        for(let placeholderTestCase of paceholderTestCases){
+          it(`must return the input value ${placeholderTestCase.condition}`, async function () {
+            await server.setBody(generateInput({type: elementType, placeholder: placeholderTestCase.labelName, value: '18'}))
+            await user.open(server.url)
+            const age = await user.get(placeholderTestCase.property)
+            expect(age).to.equal('18')
+          })
+        }
       })
-    
   })
 
   //TODO: parametrize label text: Age, age, aGe, spaces, colon, several words...
@@ -214,46 +206,16 @@ for(let elementType of [
 
   describe('set', function () {
     describe(`when the identifier of ${elementType} element is in a label`, function () {
-      it('must set the value in the input', async function () {
-        await server.setBody(generateInputWithLabel({type: elementType, label: 'age', value:'oldvalue'}))
-        await user.open(server.url)
-        await user.set('age', '18')
+      for(let labelTestCase of labelTestCases){
+        it(`must set the value in the input ${labelTestCase.condition}`, async function () {
+          await server.setBody(generateInputWithLabel({type: elementType, label: labelTestCase.labelName, value:'oldvalue'}))
+          await user.open(server.url)
+          await user.set(labelTestCase.property, '18')
 
-        const age = await user.get('age')
-        expect(age).to.equal('18')
-      })
-      it('must ignore case to match property and label', async function () {
-        await server.setBody(generateInputWithLabel({type: elementType, label: 'Age', value:'oldvalue'}))
-        await user.open(server.url)
-        await user.set('age', '18')
-
-        const age = await user.get('age')
-        expect(age).to.equal('18')
-      })
-      it('must ignore spaces to match property and label', async function () {
-        await server.setBody(generateInputWithLabel({type: elementType, label: ' age ', value:'oldvalue'}))
-        await user.open(server.url)
-        await user.set('age', '18')
-
-        const age = await user.get('age')
-        expect(age).to.equal('18')
-      })
-      it('must ignore colon to match property and label', async function () {
-        await server.setBody(generateInputWithLabel({type: elementType, label: ' Age: ', value:'oldvalue'}))
-        await user.open(server.url)
-        await user.set('age', '18')
-
-        const age = await user.get('age')
-        expect(age).to.equal('18')
-      })
-      it('must work with several words', async function () {
-        await server.setBody(generateInputWithLabel({type: elementType, label: ' Date of birth: ', inputId: 'date-of-birth', value:'oldvalue'}))
-        await user.open(server.url)
-        await user.set('date of birth', '1987-01-23')
-
-        const dateOfBirth = await user.get('date of birth')
-        expect(dateOfBirth).to.equal('1987-01-23')
-      })
+          const age = await user.get(labelTestCase.property)
+          expect(age).to.equal('18')
+        })
+      }
       it('must throw when the label includes the property but is not the entire word', async function () {
         await server.setBody(generateInputWithLabel({type: elementType, label: ' Marriage: ', value:'oldvalue'}))
         await user.open(server.url)
@@ -272,24 +234,17 @@ for(let elementType of [
       })
     })
     describe(`when the identifier of ${elementType} element is in a placeholder`, function () {
-      it('must set the value', async function () {
-        await server.setBody(generateInput({type: elementType, placeholder: 'age', value: 'oldvalue'}))
-        await user.open(server.url)
+      for(let placeholderTestCase of paceholderTestCases){
+        it(`must set the value ${placeholderTestCase.condition}`, async function () {
+          await server.setBody(generateInput({type: elementType, placeholder: placeholderTestCase.labelName, value: 'oldvalue'}))
+          await user.open(server.url)
 
-        await user.set('age', '18')
+          await user.set(placeholderTestCase.property, '18')
 
-        const age = await user.get('age')
-        expect(age).to.equal('18')
-      })
-      it('must ignore case to match property and placeholder', async function () {
-        await server.setBody(generateInput({type: elementType, placeholder: 'Age', value: 'oldvalue'}))
-        await user.open(server.url)
-
-        await user.set('agE', '18')
-
-        const age = await user.get('age')
-        expect(age).to.equal('18')
-      })
+          const age = await user.get(placeholderTestCase.property)
+          expect(age).to.equal('18')
+        })
+      }
     })
   })
 }
