@@ -54,29 +54,16 @@ module.exports = async function (testUserOptions) {
     return relatedInputValue
   }
 
-  async function getPropertyInput (property) {
-    const labels = await driver.findElements(By.tagName('label'))
+  async function getInputLookingForLabels(property){
+    let relatedInput
+
+    const labels = await driver.findElements(By.css('label'))
     const propertyLabels = await asyncFindAll(labels, async function (label) {
       const labelText = await label.getText()
       return labelText.toLowerCase().replace(':', '') == property.toLowerCase()
     })
 
-    let relatedInput
-
-    if (propertyLabels.length == 0) {
-      // Look for placeholders in inputs
-      const inputs = await driver.findElements(By.tagName('input'))
-      var relatedInputs = await asyncFindAll(inputs, async function (input) {
-        const inputType = await input.getAttribute('type')
-        if (inputType == 'text' || inputType == 'password') {
-          const inputPlaceholder = await input.getAttribute('placeholder')
-          return inputPlaceholder.toLowerCase() == property.toLowerCase()
-        }
-      })
-
-      if (relatedInputs.length == 0) throw new Error(`Property "${property}" not found`)
-      relatedInput = relatedInputs[0]
-    } else {
+    if (propertyLabels.length > 0){
       const propertyLabel = propertyLabels[0]
       const relatedInputId = await propertyLabel.getAttribute('for')
       var relatedInputs = await driver.findElements(By.id(relatedInputId))
@@ -91,6 +78,41 @@ module.exports = async function (testUserOptions) {
     return relatedInput
   }
 
+  async function getInputLookingForPlaceholders(property){
+    let relatedInput
+    // Look for placeholders in inputs
+    const inputs = await driver.findElements(By.css('input'))
+    var relatedInputs = await asyncFindAll(inputs, async function (input) {
+      const inputType = await input.getAttribute('type')
+      if (inputType == 'text' || inputType == 'password') {
+        const inputPlaceholder = await input.getAttribute('placeholder')
+        return inputPlaceholder.toLowerCase().trim().replace('...', '') == property.toLowerCase()
+      }
+    })
+
+    if (relatedInputs.length == 0){
+      //Look for placeholders in textarea
+      const textAreas = await driver.findElements(By.css('textarea'))
+      relatedInputs = await asyncFindAll(textAreas, async function (textarea) {
+          const inputPlaceholder = await textarea.getAttribute('placeholder')
+          return inputPlaceholder.toLowerCase().trim().replace('...', '') == property.toLowerCase()
+      })
+
+      if (relatedInputs.length > 0) relatedInput = relatedInputs[0]
+    }else{
+      relatedInput = relatedInputs[0]
+    }
+
+    return relatedInput
+  }
+
+  async function getPropertyInput (property) {
+    let relatedInput = await getInputLookingForLabels(property)
+    if (!relatedInput) relatedInput = await getInputLookingForPlaceholders(property)
+    if (!relatedInput) throw new Error(`Property "${property}" not found`)
+    return relatedInput
+  }
+
   async function waitTo (fn) {
     try {
       return await driver.wait(async function () {
@@ -102,7 +124,7 @@ module.exports = async function (testUserOptions) {
   }
 
   async function getActionButtonFor (description) {
-    const buttons = await driver.findElements(By.tagName('button'))
+    const buttons = await driver.findElements(By.css('button'))
     const buttonOptions = await asyncFindAll(buttons, async function (button) {
       const buttonText = await button.getText()
       const buttonDisabled = await button.getAttribute('disabled')
@@ -117,7 +139,7 @@ module.exports = async function (testUserOptions) {
   }
 
   async function getActionLinkFor (description) {
-    const links = await driver.findElements(By.tagName('a'))
+    const links = await driver.findElements(By.css('a'))
     const linkOptions = await asyncFindAll(links, async function (link) {
       const linkText = await link.getText()
       const isLinkDisabled = await link.getAttribute('disabled')
@@ -132,7 +154,7 @@ module.exports = async function (testUserOptions) {
   }
 
   async function getActionInputFor (description) {
-    const inputs = await driver.findElements(By.tagName('input'))
+    const inputs = await driver.findElements(By.css('input'))
     const inputOptions = await asyncFindAll(inputs, async function (input) {
       const inputType = await input.getAttribute('type')
       if (inputType == 'button' || inputType == 'submit') {
