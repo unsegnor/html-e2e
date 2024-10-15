@@ -86,7 +86,7 @@ module.exports = async function (testUserOptions) {
       const inputType = await input.getAttribute('type')
       if (inputType == 'text' || inputType == 'password') {
         const inputPlaceholder = await input.getAttribute('placeholder')
-        return inputPlaceholder.toLowerCase() == property.toLowerCase()
+        return inputPlaceholder.toLowerCase().trim().replace('...', '') == property.toLowerCase()
       }
     })
 
@@ -95,7 +95,7 @@ module.exports = async function (testUserOptions) {
       const textAreas = await driver.findElements(By.css('textarea'))
       relatedInputs = await asyncFindAll(textAreas, async function (textarea) {
           const inputPlaceholder = await textarea.getAttribute('placeholder')
-          return inputPlaceholder.toLowerCase() == property.toLowerCase()
+          return inputPlaceholder.toLowerCase().trim().replace('...', '') == property.toLowerCase()
       })
 
       if (relatedInputs.length > 0) relatedInput = relatedInputs[0]
