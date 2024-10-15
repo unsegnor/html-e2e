@@ -138,12 +138,12 @@ function generateInput({type, value, id, placeholder}){
   throw new Error(`Unsupported type ${type}`)
 }
 
+for(let elementType of [
+  'text',
+  'textarea',
+  'password'
+]){
   describe('get', function () {
-    for(let elementType of [
-      'text',
-      'textarea',
-      'password'
-    ]){
       describe(`when the identifier of ${elementType} element is in a label`, function () {
         it('must return the input value', async function () {
           await server.setBody(generateInputWithLabel({type: elementType, label: 'age', value: '18'}))
@@ -206,18 +206,16 @@ function generateInput({type, value, id, placeholder}){
           expect(age).to.equal('18')
         })
       })
-    }
+    
   })
 
   //TODO: parametrize label text: Age, age, aGe, spaces, colon, several words...
   //TODO: parametrize placeholder?
 
   describe('set', function () {
-    describe('when the property is in a label', function () {
+    describe(`when the identifier of ${elementType} element is in a label`, function () {
       it('must set the value in the input', async function () {
-        await server.setBody(`
-                    <label for="age">age</label>
-                    <input type="text" id="age" value="oldvalue">`)
+        await server.setBody(generateInputWithLabel({type: elementType, label: 'age', value:'oldvalue'}))
         await user.open(server.url)
         await user.set('age', '18')
 
@@ -225,9 +223,7 @@ function generateInput({type, value, id, placeholder}){
         expect(age).to.equal('18')
       })
       it('must ignore case to match property and label', async function () {
-        await server.setBody(`
-                    <label for="age">Age</label>
-                    <input type="text" id="age" value="oldvalue">`)
+        await server.setBody(generateInputWithLabel({type: elementType, label: 'Age', value:'oldvalue'}))
         await user.open(server.url)
         await user.set('age', '18')
 
@@ -235,9 +231,7 @@ function generateInput({type, value, id, placeholder}){
         expect(age).to.equal('18')
       })
       it('must ignore spaces to match property and label', async function () {
-        await server.setBody(`
-                    <label for="age"> age </label>
-                    <input type="text" id="age" value="oldvalue">`)
+        await server.setBody(generateInputWithLabel({type: elementType, label: ' age ', value:'oldvalue'}))
         await user.open(server.url)
         await user.set('age', '18')
 
@@ -245,9 +239,7 @@ function generateInput({type, value, id, placeholder}){
         expect(age).to.equal('18')
       })
       it('must ignore colon to match property and label', async function () {
-        await server.setBody(`
-                    <label for="age"> Age: </label>
-                    <input type="text" id="age" value="oldvalue">`)
+        await server.setBody(generateInputWithLabel({type: elementType, label: ' Age: ', value:'oldvalue'}))
         await user.open(server.url)
         await user.set('age', '18')
 
@@ -255,9 +247,7 @@ function generateInput({type, value, id, placeholder}){
         expect(age).to.equal('18')
       })
       it('must work with several words', async function () {
-        await server.setBody(`
-                    <label for="date-of-birth"> Date of birth: </label>
-                    <input type="text" id="date-of-birth" value="oldvalue">`)
+        await server.setBody(generateInputWithLabel({type: elementType, label: ' Date of birth: ', inputId: 'date-of-birth', value:'oldvalue'}))
         await user.open(server.url)
         await user.set('date of birth', '1987-01-23')
 
@@ -265,9 +255,7 @@ function generateInput({type, value, id, placeholder}){
         expect(dateOfBirth).to.equal('1987-01-23')
       })
       it('must throw when the label includes the property but is not the entire word', async function () {
-        await server.setBody(`
-                    <label for="age"> Marriage: </label>
-                    <input type="text" id="age" value="18">`)
+        await server.setBody(generateInputWithLabel({type: elementType, label: ' Marriage: ', value:'oldvalue'}))
         await user.open(server.url)
 
         await expectToThrow('property "age" not found', async function () {
@@ -275,9 +263,7 @@ function generateInput({type, value, id, placeholder}){
         })
       })
       it('must throw when the field related to the label does not exist', async function () {
-        await server.setBody(`
-                    <label for="notexistingField"> Age: </label>
-                    <input type="text" id="age" value="18">`)
+        await server.setBody(generateInputWithLabel({type: elementType, label: 'Age:', inputId: 'age', labelFor: 'notexistingField', value: 'oldvalue'}))
         await user.open(server.url)
 
         await expectToThrow('missing input field for label "Age:"', async function () {
@@ -285,9 +271,9 @@ function generateInput({type, value, id, placeholder}){
         })
       })
     })
-    describe('when the property is in a placeholder', function () {
-      it('must return the input value', async function () {
-        await server.setBody('<input placeholder="age" type="text" value="oldValue">')
+    describe(`when the identifier of ${elementType} element is in a placeholder`, function () {
+      it('must set the value', async function () {
+        await server.setBody(generateInput({type: elementType, placeholder: 'age', value: 'oldvalue'}))
         await user.open(server.url)
 
         await user.set('age', '18')
@@ -296,7 +282,7 @@ function generateInput({type, value, id, placeholder}){
         expect(age).to.equal('18')
       })
       it('must ignore case to match property and placeholder', async function () {
-        await server.setBody('<input placeholder="Age" type="text" value="oldValue">')
+        await server.setBody(generateInput({type: elementType, placeholder: 'Age', value: 'oldvalue'}))
         await user.open(server.url)
 
         await user.set('agE', '18')
@@ -306,6 +292,7 @@ function generateInput({type, value, id, placeholder}){
       })
     })
   })
+}
 
   describe('doAction', function () {
     describe('when the action is a button', function () {
