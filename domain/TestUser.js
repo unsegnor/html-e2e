@@ -63,7 +63,17 @@ module.exports = async function (testUserOptions) {
 
     let relatedInput
 
-    if (propertyLabels.length == 0) {
+    if (propertyLabels.length > 0){
+      const propertyLabel = propertyLabels[0]
+      const relatedInputId = await propertyLabel.getAttribute('for')
+      var relatedInputs = await driver.findElements(By.id(relatedInputId))
+      if (relatedInputs.length == 0) {
+        const propertyLabelText = await propertyLabel.getText()
+        throw new Error(`Missing input field for label "${propertyLabelText}"`)
+      }
+
+      relatedInput = relatedInputs[0]
+    }else{
       // Look for placeholders in inputs
       const inputs = await driver.findElements(By.css('input'))
       var relatedInputs = await asyncFindAll(inputs, async function (input) {
@@ -84,16 +94,6 @@ module.exports = async function (testUserOptions) {
       }
 
       if (relatedInputs.length == 0) throw new Error(`Property "${property}" not found`)
-      relatedInput = relatedInputs[0]
-    } else {
-      const propertyLabel = propertyLabels[0]
-      const relatedInputId = await propertyLabel.getAttribute('for')
-      var relatedInputs = await driver.findElements(By.id(relatedInputId))
-      if (relatedInputs.length == 0) {
-        const propertyLabelText = await propertyLabel.getText()
-        throw new Error(`Missing input field for label "${propertyLabelText}"`)
-      }
-
       relatedInput = relatedInputs[0]
     }
 
