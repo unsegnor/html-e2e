@@ -131,8 +131,9 @@ module.exports = async function (testUserOptions) {
       if (buttonDisabled) return false
       if (buttonText.toLowerCase().trim() == description.toLowerCase().trim()) return true
 
-      const title = await button.getAttribute('title')
-      return title.toLowerCase() == description.toLowerCase()
+      const ariaLabel = await button.getAttribute('aria-label')
+      if (!ariaLabel) return false
+      return ariaLabel.toLowerCase().trim() == description.toLowerCase()
     })
 
     return buttonOptions[0]
@@ -146,8 +147,9 @@ module.exports = async function (testUserOptions) {
       if (isLinkDisabled) return false
       if (linkText.toLowerCase().trim() == description.toLowerCase().trim()) return true
 
-      const title = await link.getAttribute('title')
-      return title.toLowerCase() == description.toLowerCase()
+      const ariaLabel = await link.getAttribute('aria-label')
+      if (!ariaLabel) return false
+      return ariaLabel.toLowerCase().trim() == description.toLowerCase()
     })
 
     return linkOptions[0]
@@ -160,7 +162,12 @@ module.exports = async function (testUserOptions) {
       if (inputType == 'button' || inputType == 'submit') {
         const inputText = await input.getAttribute('value')
         const inputDisabled = await input.getAttribute('disabled')
-        return inputText.toLowerCase().trim() == description.toLowerCase().trim() && !inputDisabled
+        if (inputDisabled) return false
+        if (inputText.toLowerCase().trim() == description.toLowerCase().trim()) return true
+
+        const ariaLabel = await input.getAttribute('aria-label')
+        if (!ariaLabel) return false
+        return ariaLabel.toLowerCase().trim() == description.toLowerCase()
       }
     })
 

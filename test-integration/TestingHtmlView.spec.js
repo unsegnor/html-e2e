@@ -251,16 +251,17 @@ for(let elementType of [
   })
 }
 
-function getActionElementWithResult({type, text}){
-  return `${getResultElement()}${getActionElement({type, text})}`
+function getActionElementWithResult({type, text, ariaLabel}){
+  return `${getResultElement()}${getActionElement({type, text, ariaLabel})}`
 }
 
-function getActionElement({type, text}){
+function getActionElement({type, text, ariaLabel}){
+  let ariaLabelHtml = ariaLabel ? `aria-label="${ariaLabel}"` : ''
   switch (type){
-    case 'button': return `<button onclick="document.getElementById('result').value = 'clicked'">${text}</button>`
-    case 'input button': return `<input type="button" onclick="document.getElementById('result').value = 'clicked'" value="${text}">`
-    case 'input submit': return `<input type="submit" onclick="document.getElementById('result').value = 'clicked'" value="${text}">`
-    case 'link': return `<a href="#" onclick="document.getElementById('result').value = 'clicked'">${text}</a>`
+    case 'button': return `<button ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'">${text}</button>`
+    case 'input button': return `<input type="button" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" value="${text}">`
+    case 'input submit': return `<input type="submit" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" value="${text}">`
+    case 'link': return `<a href="#" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'">${text}</a>`
     default: throw new Error(`Unsupported type ${type}`)
   }
 }
@@ -276,7 +277,7 @@ function getResultElement(){
       'input submit',
       'link'
     ]){
-      describe.only(`when the action is a ${elementType}`, function () {
+      describe(`when the action is a ${elementType}`, function () {
         it(`must click the ${elementType}`, async function () {
           await server.setBody(getActionElementWithResult({type: elementType, text: 'perform action'}))
           await user.open(server.url)
@@ -296,19 +297,17 @@ function getResultElement(){
             expect(clicked).to.equal('clicked')
           })
         }
-  
-        // it('must ignore spaces in the beginning or the end', async function () {
-        //   server.setBody(`
-        //               <label for="result">Result</label>
-        //               <input type="text" id="result">
-        //               <button onclick="document.getElementById('result').value = 'clicked'">   perform ACTION with button   </button>
-        //           `)
-        //   await user.open(server.url)
-        //   await user.doAction(' perform action with BUTTON ')
-  
-        //   const clicked = await user.get('result')
-        //   expect(clicked).to.equal('clicked')
-        // })
+
+        for(let idTestCase of identifierTestCases){
+          it(`must click the ${elementType} based on the aria-label when the text is not readable ${idTestCase.condition}`, async function () {
+            await server.setBody(getActionElementWithResult({type: elementType, text: 'X', ariaLabel: idTestCase.labelName}))
+            await user.open(server.url)
+            await user.doAction(idTestCase.property)
+    
+            const clicked = await user.get('result')
+            expect(clicked).to.equal('clicked')
+          })
+        }
   
         // it('must look also for matching title when content is an icon', async function () {
         //   server.setBody(`
@@ -355,46 +354,7 @@ function getResultElement(){
 
     }
     describe('when the action is a button', function () {
-      it('must click the button', async function () {
-        server.setBody(`
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    <button onclick="document.getElementById('result').value = 'clicked'">perform action with button</button>
-                `)
-        await user.open(server.url)
-        await user.doAction('perform action with button')
-
-        const clicked = await user.get('result')
-        expect(clicked).to.equal('clicked')
-      })
-
-      it('must not be case sensitive', async function () {
-        server.setBody(`
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    <button onclick="document.getElementById('result').value = 'clicked'">perform ACTION with button</button>
-                `)
-        await user.open(server.url)
-        await user.doAction('perform action with BUTTON')
-
-        const clicked = await user.get('result')
-        expect(clicked).to.equal('clicked')
-      })
-
-      it('must ignore spaces in the beginning or the end', async function () {
-        server.setBody(`
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    <button onclick="document.getElementById('result').value = 'clicked'">   perform ACTION with button   </button>
-                `)
-        await user.open(server.url)
-        await user.doAction(' perform action with BUTTON ')
-
-        const clicked = await user.get('result')
-        expect(clicked).to.equal('clicked')
-      })
-
-      it('must look also for matching title when content is an icon', async function () {
+      xit('must look also for matching title when content is an icon', async function () {
         server.setBody(`
                     <label for="result">Result</label>
                     <input type="text" id="result">
@@ -437,19 +397,6 @@ function getResultElement(){
       })
     })
     describe('when the action is an input button', function () {
-      it('must click the button', async function () {
-        server.setBody(`
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    <input type="button" onclick="document.getElementById('result').value = 'clicked'" value="perform action with input button">
-                `)
-        await user.open(server.url)
-        await user.doAction('perform action with input button')
-
-        const result = await user.get('result')
-        expect(result).to.equal('clicked')
-      })
-
       it('must click input buttons which text is filled up to 1 second after loading the webpage', async function () {
         server.setBody(`
                     <script>setTimeout(function(){ document.getElementById('button1').value = 'perform action with button'}, 1000)</script>
@@ -479,34 +426,7 @@ function getResultElement(){
         expect(clicked).to.equal('clicked')
       })
     })
-    describe('when the action is an input submit', function () {
-      it('must click the button', async function () {
-        server.setBody(`
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    <input type="submit" onclick="document.getElementById('result').value = 'clicked'" value="perform action with input button">
-                `)
-        await user.open(server.url)
-        await user.doAction('perform action with input button')
-
-        const result = await user.get('result')
-        expect(result).to.equal('clicked')
-      })
-    })
     describe('when the action is a link', function () {
-      it('must click the link', async function () {
-        server.setBody(`
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    <a href="#" onclick="document.getElementById('result').value = 'clicked'">perform action with input link</a>
-                `)
-        await user.open(server.url)
-        await user.doAction('perform action with input link')
-
-        const result = await user.get('result')
-        expect(result).to.equal('clicked')
-      })
-
       it('must click the link which text is filled up to 1 second after loading the webpage', async function () {
         server.setBody(`
                     <script>setTimeout(function(){ document.getElementById('link1').text = 'perform action with link'}, 1000)</script>
@@ -536,33 +456,7 @@ function getResultElement(){
         expect(clicked).to.equal('clicked')
       })
 
-      it('must ignore case', async function () {
-        server.setBody(`
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    <a href="#" onclick="document.getElementById('result').value = 'clicked'">perform ACTION with input link</a>
-                `)
-        await user.open(server.url)
-        await user.doAction('perform action with input LINK')
-
-        const result = await user.get('result')
-        expect(result).to.equal('clicked')
-      })
-
-      it('must ignore spaces in the beginning or the end', async function () {
-        server.setBody(`
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    <a href="#" onclick="document.getElementById('result').value = 'clicked'">   perform ACTION with input link   </a>
-                `)
-        await user.open(server.url)
-        await user.doAction(' perform action with input LINK ')
-
-        const result = await user.get('result')
-        expect(result).to.equal('clicked')
-      })
-
-      it('must look also for a matching title when the content is an icon', async function () {
+      xit('must look also for a matching title when the content is an icon', async function () {
         server.setBody(`
                     <label for="result">Result</label>
                     <input type="text" id="result">
