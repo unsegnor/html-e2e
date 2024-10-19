@@ -251,16 +251,16 @@ for(let elementType of [
   })
 }
 
-function getActionElementWithResult({type}){
-  return `${getResultElement()}${getActionElement({type})}`
+function getActionElementWithResult({type, text}){
+  return `${getResultElement()}${getActionElement({type, text})}`
 }
 
-function getActionElement({type}){
+function getActionElement({type, text}){
   switch (type){
-    case 'button': return `<button onclick="document.getElementById('result').value = 'clicked'">perform action</button>`
-    case 'input button': return `<input type="button" onclick="document.getElementById('result').value = 'clicked'" value="perform action">`
-    case 'input submit': return `<input type="submit" onclick="document.getElementById('result').value = 'clicked'" value="perform action">`
-    case 'link': return `<a href="#" onclick="document.getElementById('result').value = 'clicked'">perform action</a>`
+    case 'button': return `<button onclick="document.getElementById('result').value = 'clicked'">${text}</button>`
+    case 'input button': return `<input type="button" onclick="document.getElementById('result').value = 'clicked'" value="${text}">`
+    case 'input submit': return `<input type="submit" onclick="document.getElementById('result').value = 'clicked'" value="${text}">`
+    case 'link': return `<a href="#" onclick="document.getElementById('result').value = 'clicked'">${text}</a>`
     default: throw new Error(`Unsupported type ${type}`)
   }
 }
@@ -278,26 +278,24 @@ function getResultElement(){
     ]){
       describe.only(`when the action is a ${elementType}`, function () {
         it(`must click the ${elementType}`, async function () {
-          await server.setBody(getActionElementWithResult({type: elementType}))
+          await server.setBody(getActionElementWithResult({type: elementType, text: 'perform action'}))
           await user.open(server.url)
           await user.doAction('perform action')
   
           const clicked = await user.get('result')
           expect(clicked).to.equal('clicked')
         })
-  
-        // it('must not be case sensitive', async function () {
-        //   server.setBody(`
-        //               <label for="result">Result</label>
-        //               <input type="text" id="result">
-        //               <button onclick="document.getElementById('result').value = 'clicked'">perform ACTION with button</button>
-        //           `)
-        //   await user.open(server.url)
-        //   await user.doAction('perform action with BUTTON')
-  
-        //   const clicked = await user.get('result')
-        //   expect(clicked).to.equal('clicked')
-        // })
+
+        for(let idTestCase of identifierTestCases){
+          it(`must click the ${elementType} ${idTestCase.condition}`, async function () {
+            await server.setBody(getActionElementWithResult({type: elementType, text: idTestCase.labelName}))
+            await user.open(server.url)
+            await user.doAction(idTestCase.property)
+    
+            const clicked = await user.get('result')
+            expect(clicked).to.equal('clicked')
+          })
+        }
   
         // it('must ignore spaces in the beginning or the end', async function () {
         //   server.setBody(`
