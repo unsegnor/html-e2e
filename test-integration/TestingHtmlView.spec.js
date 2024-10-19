@@ -251,7 +251,111 @@ for(let elementType of [
   })
 }
 
+function getActionElementWithResult({type}){
+  return `${getResultElement()}${getActionElement({type})}`
+}
+
+function getActionElement({type}){
+  switch (type){
+    case 'button': return `<button onclick="document.getElementById('result').value = 'clicked'">perform action</button>`
+    case 'input button': return `<input type="button" onclick="document.getElementById('result').value = 'clicked'" value="perform action">`
+    case 'input submit': return `<input type="submit" onclick="document.getElementById('result').value = 'clicked'" value="perform action">`
+    case 'link': return `<a href="#" onclick="document.getElementById('result').value = 'clicked'">perform action</a>`
+    default: throw new Error(`Unsupported type ${type}`)
+  }
+}
+
+function getResultElement(){
+  return '<label for="result">Result</label><input type="text" id="result">'
+}
+
   describe('doAction', function () {
+    for(let elementType of [
+      'button',
+      'input button',
+      'input submit',
+      'link'
+    ]){
+      describe.only(`when the action is a ${elementType}`, function () {
+        it(`must click the ${elementType}`, async function () {
+          await server.setBody(getActionElementWithResult({type: elementType}))
+          await user.open(server.url)
+          await user.doAction('perform action')
+  
+          const clicked = await user.get('result')
+          expect(clicked).to.equal('clicked')
+        })
+  
+        // it('must not be case sensitive', async function () {
+        //   server.setBody(`
+        //               <label for="result">Result</label>
+        //               <input type="text" id="result">
+        //               <button onclick="document.getElementById('result').value = 'clicked'">perform ACTION with button</button>
+        //           `)
+        //   await user.open(server.url)
+        //   await user.doAction('perform action with BUTTON')
+  
+        //   const clicked = await user.get('result')
+        //   expect(clicked).to.equal('clicked')
+        // })
+  
+        // it('must ignore spaces in the beginning or the end', async function () {
+        //   server.setBody(`
+        //               <label for="result">Result</label>
+        //               <input type="text" id="result">
+        //               <button onclick="document.getElementById('result').value = 'clicked'">   perform ACTION with button   </button>
+        //           `)
+        //   await user.open(server.url)
+        //   await user.doAction(' perform action with BUTTON ')
+  
+        //   const clicked = await user.get('result')
+        //   expect(clicked).to.equal('clicked')
+        // })
+  
+        // it('must look also for matching title when content is an icon', async function () {
+        //   server.setBody(`
+        //               <label for="result">Result</label>
+        //               <input type="text" id="result">
+        //               <button onclick="document.getElementById('result').value = 'clicked'" title="perform action with button"><span class="glyphicon"></span></button>
+        //           `)
+        //   await user.open(server.url)
+        //   await user.doAction('perform action with button')
+  
+        //   const clicked = await user.get('result')
+        //   expect(clicked).to.equal('clicked')
+        // })
+  
+        // it('must click buttons which text is filled up to 1 second after loading the webpage', async function () {
+        //   server.setBody(`
+        //               <script>setTimeout(function(){ document.getElementById('button1').innerText = 'perform action with button'}, 1000)</script>
+        //               <button id="button1" onclick="document.getElementById('result').value = 'clicked'">provisional text while loading</button>
+        //               <label for="result">Result</label>
+        //               <input type="text" id="result">
+        //               `)
+        //   await user.open(server.url)
+        //   await user.doAction('perform action with button')
+  
+        //   const clicked = await user.get('result')
+        //   expect(clicked).to.equal('clicked')
+        // })
+  
+        // it('must click buttons which text is filled up to 1 second after performing an action', async function () {
+        //   server.setBody(`
+        //               <button id="button0" onclick="setTimeout(function(){ document.getElementById('button1').innerText = 'perform action with button'}, 1000)">load more actions</button>
+        //               <button id="button1" onclick="document.getElementById('result').value = 'clicked'">provisional text while loading</button>
+        //               <label for="result">Result</label>
+        //               <input type="text" id="result">
+        //               `)
+        //   await user.open(server.url)
+        //   await user.doAction('load more actions')
+        //   await user.doAction('perform action with button')
+  
+        //   const clicked = await user.get('result')
+        //   expect(clicked).to.equal('clicked')
+        // })
+      })
+
+    }
     describe('when the action is a button', function () {
       it('must click the button', async function () {
         server.setBody(`
