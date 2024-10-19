@@ -160,7 +160,7 @@ module.exports = async function (testUserOptions) {
       if (inputType == 'button' || inputType == 'submit') {
         const inputText = await input.getAttribute('value')
         const inputDisabled = await input.getAttribute('disabled')
-        return inputText.toLowerCase() == description.toLowerCase() && !inputDisabled
+        return inputText.toLowerCase().trim() == description.toLowerCase().trim() && !inputDisabled
       }
     })
 
