@@ -376,7 +376,7 @@ function getElementTypeTextProperty(type){
           expect(clicked).to.equal('clicked')
         })
   
-        it('must click buttons which text is filled up to 1 second after performing an action', async function () {
+        it(`must click the ${elementType} which text is filled up to 1 second after performing an action`, async function () {
           await server.setBody(`
                       <button id="button0" onclick="setTimeout(function(){ document.getElementById('action1').${getElementTypeTextProperty(elementType)} = 'perform action'}, 1000)">load more actions</button>
                       ${getActionElementWithResult({
