@@ -9,7 +9,7 @@ describe('testing html view', function () {
 
   this.beforeEach(async function () {
     server = await FakeServer()
-    user = await TestUser()
+    user = await TestUser({showBrowser: false})
   })
 
   this.afterEach(async function () {
@@ -251,23 +251,35 @@ for(let elementType of [
   })
 }
 
-function getActionElementWithResult({type, text, ariaLabel}){
-  return `${getResultElement()}${getActionElement({type, text, ariaLabel})}`
+function getActionElementWithResult({type, text, ariaLabel, id}){
+  return `${getResultFieldWithLabel()}${getActionElementToWriteOnResult({type, text, ariaLabel, id})}`
 }
 
-function getActionElement({type, text, ariaLabel}){
+function getActionElementToWriteOnResult({type, text, ariaLabel, id}){
   let ariaLabelHtml = ariaLabel ? `aria-label="${ariaLabel}"` : ''
+  let _id = id ?? crypto.randomUUID()
   switch (type){
-    case 'button': return `<button ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'">${text}</button>`
-    case 'input button': return `<input type="button" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" value="${text}">`
-    case 'input submit': return `<input type="submit" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" value="${text}">`
-    case 'link': return `<a href="#" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'">${text}</a>`
+    case 'button': return `<button id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'">${text}</button>`
+    case 'input button': return `<input type="button" id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" value="${text}">`
+    case 'input submit': return `<input type="submit" id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" value="${text}">`
+    case 'link': return `<a href="#" id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'">${text}</a>`
     default: throw new Error(`Unsupported type ${type}`)
   }
 }
 
-function getResultElement(){
+function getResultFieldWithLabel(){
   return '<label for="result">Result</label><input type="text" id="result">'
+}
+
+function getElementTypeTextProperty(type){
+  //TODO: I think these should be different values of the same 'text' property of a class for each element type
+  switch (type){
+    case 'button': return 'innerText'
+    case 'input button': return 'value'
+    case 'input submit': return 'value'
+    case 'link': return 'text'
+    default: throw new Error(`There is no text property defined for type ${type}`)
+  }
 }
 
   describe('doAction', function () {
@@ -322,34 +334,37 @@ function getResultElement(){
         //   expect(clicked).to.equal('clicked')
         // })
   
-        // it('must click buttons which text is filled up to 1 second after loading the webpage', async function () {
-        //   server.setBody(`
-        //               <script>setTimeout(function(){ document.getElementById('button1').innerText = 'perform action with button'}, 1000)</script>
-        //               <button id="button1" onclick="document.getElementById('result').value = 'clicked'">provisional text while loading</button>
-        //               <label for="result">Result</label>
-        //               <input type="text" id="result">
-        //               `)
-        //   await user.open(server.url)
-        //   await user.doAction('perform action with button')
+        it(`must click ${elementType} which text is filled up to 1 second after loading the webpage`, async function () {
+          let htmlBody = `
+          <script>setTimeout(function(){ document.getElementById('action1').${getElementTypeTextProperty(elementType)} = 'perform action'}, 1000)</script>
+          ${getActionElementWithResult({
+            type: elementType, 
+            text: 'privisional text while loading',
+            id: 'action1'})}
+          `
+          await server.setBody(htmlBody)
+          await user.open(server.url)
+          await user.doAction('perform action')
   
-        //   const clicked = await user.get('result')
-        //   expect(clicked).to.equal('clicked')
-        // })
+          const clicked = await user.get('result')
+          expect(clicked).to.equal('clicked')
+        })
   
-        // it('must click buttons which text is filled up to 1 second after performing an action', async function () {
-        //   server.setBody(`
-        //               <button id="button0" onclick="setTimeout(function(){ document.getElementById('button1').innerText = 'perform action with button'}, 1000)">load more actions</button>
-        //               <button id="button1" onclick="document.getElementById('result').value = 'clicked'">provisional text while loading</button>
-        //               <label for="result">Result</label>
-        //               <input type="text" id="result">
-        //               `)
-        //   await user.open(server.url)
-        //   await user.doAction('load more actions')
-        //   await user.doAction('perform action with button')
+        it('must click buttons which text is filled up to 1 second after performing an action', async function () {
+          await server.setBody(`
+                      <button id="button0" onclick="setTimeout(function(){ document.getElementById('action1').${getElementTypeTextProperty(elementType)} = 'perform action'}, 1000)">load more actions</button>
+                      ${getActionElementWithResult({
+                        type: elementType, 
+                        text: 'privisional text while loading',
+                        id: 'action1'})}
+            `)
+          await user.open(server.url)
+          await user.doAction('load more actions')
+          await user.doAction('perform action')
   
-        //   const clicked = await user.get('result')
-        //   expect(clicked).to.equal('clicked')
-        // })
+          const clicked = await user.get('result')
+          expect(clicked).to.equal('clicked')
+        })
       })
 
     }
@@ -366,96 +381,9 @@ function getResultElement(){
         const clicked = await user.get('result')
         expect(clicked).to.equal('clicked')
       })
-
-      it('must click buttons which text is filled up to 1 second after loading the webpage', async function () {
-        server.setBody(`
-                    <script>setTimeout(function(){ document.getElementById('button1').innerText = 'perform action with button'}, 1000)</script>
-                    <button id="button1" onclick="document.getElementById('result').value = 'clicked'">provisional text while loading</button>
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    `)
-        await user.open(server.url)
-        await user.doAction('perform action with button')
-
-        const clicked = await user.get('result')
-        expect(clicked).to.equal('clicked')
-      })
-
-      it('must click buttons which text is filled up to 1 second after performing an action', async function () {
-        server.setBody(`
-                    <button id="button0" onclick="setTimeout(function(){ document.getElementById('button1').innerText = 'perform action with button'}, 1000)">load more actions</button>
-                    <button id="button1" onclick="document.getElementById('result').value = 'clicked'">provisional text while loading</button>
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    `)
-        await user.open(server.url)
-        await user.doAction('load more actions')
-        await user.doAction('perform action with button')
-
-        const clicked = await user.get('result')
-        expect(clicked).to.equal('clicked')
-      })
     })
-    describe('when the action is an input button', function () {
-      it('must click input buttons which text is filled up to 1 second after loading the webpage', async function () {
-        server.setBody(`
-                    <script>setTimeout(function(){ document.getElementById('button1').value = 'perform action with button'}, 1000)</script>
-                    <input type="button" id="button1" onclick="document.getElementById('result').value = 'clicked'" value="provisional text while loading">
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    `)
-        await user.open(server.url)
-        await user.doAction('perform action with button')
 
-        const clicked = await user.get('result')
-        expect(clicked).to.equal('clicked')
-      })
-
-      it('must click input buttons which text is filled up to 1 second after performing an action', async function () {
-        server.setBody(`
-                    <button id="button0" onclick="setTimeout(function(){ document.getElementById('button1').value = 'perform action with button'}, 1000)">load more actions</button>
-                    <input type="button" id="button1" onclick="document.getElementById('result').value = 'clicked'" value="provisional text while loading">
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    `)
-        await user.open(server.url)
-        await user.doAction('load more actions')
-        await user.doAction('perform action with button')
-
-        const clicked = await user.get('result')
-        expect(clicked).to.equal('clicked')
-      })
-    })
     describe('when the action is a link', function () {
-      it('must click the link which text is filled up to 1 second after loading the webpage', async function () {
-        server.setBody(`
-                    <script>setTimeout(function(){ document.getElementById('link1').text = 'perform action with link'}, 1000)</script>
-                    <a href="#" id="link1" onclick="document.getElementById('result').value = 'clicked'">provisional text while loading</a>
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    `)
-        await user.open(server.url)
-        await user.doAction('perform action with link')
-
-        const clicked = await user.get('result')
-        expect(clicked).to.equal('clicked')
-      })
-
-      it('must click the link which text is filled up to 1 second after performing an action', async function () {
-        server.setBody(`
-                    <button id="button0" onclick="setTimeout(function(){ document.getElementById('link1').text = 'perform action with link'}, 1000)">load more actions</button>
-                    <a href="#" id="link1" onclick="document.getElementById('result').value = 'clicked'">provisional text while loading</a>
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    `)
-        await user.open(server.url)
-        await user.doAction('load more actions')
-        await user.doAction('perform action with link')
-
-        const clicked = await user.get('result')
-        expect(clicked).to.equal('clicked')
-      })
-
       xit('must look also for a matching title when the content is an icon', async function () {
         server.setBody(`
                     <label for="result">Result</label>
