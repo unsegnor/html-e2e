@@ -1,5 +1,6 @@
 let previousNodeEnv = process.env.NODE_ENV
 process.env.NODE_ENV = 'test' //this is needed to get the install file from chromedriver/install
+process.env.DETECT_CHROMEDRIVER_VERSION = true
 const ChromedriverInstaller = require('chromedriver/install')
 process.env.NODE_ENV = previousNodeEnv
 
