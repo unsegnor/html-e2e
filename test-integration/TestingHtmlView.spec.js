@@ -251,18 +251,19 @@ for(let elementType of [
   })
 }
 
-function getActionElementWithResult({type, text, ariaLabel, id}){
-  return `${getResultFieldWithLabel()}${getActionElementToWriteOnResult({type, text, ariaLabel, id})}`
+function getActionElementWithResult({type, text, ariaLabel, id, disabled}){
+  return `${getResultFieldWithLabel()}${getActionElementToWriteOnResult({type, text, ariaLabel, id, disabled})}`
 }
 
-function getActionElementToWriteOnResult({type, text, ariaLabel, id}){
+function getActionElementToWriteOnResult({type, text, ariaLabel, id, disabled}){
   let ariaLabelHtml = ariaLabel ? `aria-label="${ariaLabel}"` : ''
   let _id = id ?? crypto.randomUUID()
+  let disabledHtml = disabled ? 'disabled' : ''
   switch (type){
-    case 'button': return `<button id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'">${text}</button>`
-    case 'input button': return `<input type="button" id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" value="${text}">`
-    case 'input submit': return `<input type="submit" id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" value="${text}">`
-    case 'link': return `<a href="#" id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'">${text}</a>`
+    case 'button': return `<button id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" ${disabledHtml}>${text}</button>`
+    case 'input button': return `<input type="button" id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" value="${text}" ${disabledHtml}>`
+    case 'input submit': return `<input type="submit" id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" value="${text}" ${disabledHtml}>`
+    case 'link': return `<a href="#" id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" ${disabledHtml}>${text}</a>`
     default: throw new Error(`Unsupported type ${type}`)
   }
 }
@@ -365,6 +366,16 @@ function getElementTypeTextProperty(type){
           const clicked = await user.get('result')
           expect(clicked).to.equal('clicked')
         })
+
+        it(`must throw when the ${elementType} is disabled`, async function () {
+          let htmlBody = getActionElementWithResult({type: elementType, text: 'perform action', disabled: true})
+          await server.setBody(htmlBody)
+          await user.open(server.url)
+  
+          await expectToThrow('user could not perform action', async function () {
+            await user.doAction('perform action')
+          })
+        })
       })
 
     }
@@ -395,19 +406,6 @@ function getElementTypeTextProperty(type){
 
         const result = await user.get('result')
         expect(result).to.equal('clicked')
-      })
-
-      it('must throw when the link is disabled', async function () {
-        server.setBody(`
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    <a href="#" onclick="document.getElementById('result').value = 'clicked'" disabled>perform action with input link</a>
-                `)
-        await user.open(server.url)
-
-        await expectToThrow('user could not perform action with input link', async function () {
-          await user.doAction('perform action with input link')
-        })
       })
     })
   })
