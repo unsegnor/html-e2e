@@ -123,16 +123,26 @@ module.exports = async function (testUserOptions) {
     }
   }
 
+  async function attributeHasValue({element, attribute, value}){
+    const attributeValue = await element.getAttribute(attribute)
+    if (!attributeValue) return false
+    return attributeValue.toLowerCase().trim() == value.toLowerCase()
+  }
+
+  async function isDisabled(element){
+    const attributeValue = await element.getAttribute('disabled')
+    if (attributeValue) return true
+  }
+
   async function getActionButtonFor (description) {
     const buttons = await driver.findElements(By.css('button'))
     const buttonOptions = await asyncFindAll(buttons, async function (button) {
+      if (await isDisabled(button)) return false
+
       const buttonText = await button.getText()
-      const buttonDisabled = await button.getAttribute('disabled')
-      if (buttonDisabled) return false
       if (buttonText.toLowerCase().trim() == description.toLowerCase().trim()) return true
 
-      const title = await button.getAttribute('title')
-      return title.toLowerCase() == description.toLowerCase()
+      if (await attributeHasValue({element: button, attribute: 'title', value: description})) return true
     })
 
     return buttonOptions[0]
@@ -141,13 +151,12 @@ module.exports = async function (testUserOptions) {
   async function getActionLinkFor (description) {
     const links = await driver.findElements(By.css('a'))
     const linkOptions = await asyncFindAll(links, async function (link) {
+      if (await isDisabled(link)) return false
+
       const linkText = await link.getText()
-      const isLinkDisabled = await link.getAttribute('disabled')
-      if (isLinkDisabled) return false
       if (linkText.toLowerCase().trim() == description.toLowerCase().trim()) return true
 
-      const title = await link.getAttribute('title')
-      return title.toLowerCase() == description.toLowerCase()
+      if (await attributeHasValue({element: link, attribute: 'title', value: description})) return true
     })
 
     return linkOptions[0]
@@ -158,9 +167,9 @@ module.exports = async function (testUserOptions) {
     const inputOptions = await asyncFindAll(inputs, async function (input) {
       const inputType = await input.getAttribute('type')
       if (inputType == 'button' || inputType == 'submit') {
-        const inputText = await input.getAttribute('value')
-        const inputDisabled = await input.getAttribute('disabled')
-        return inputText.toLowerCase() == description.toLowerCase() && !inputDisabled
+        if (await isDisabled(input)) return false
+        if (await attributeHasValue({element: input, attribute: 'value', value: description})) return true
+        if (await attributeHasValue({element: input, attribute: 'title', value: description})) return true
       }
     })
 
