@@ -251,19 +251,20 @@ for(let elementType of [
   })
 }
 
-function getActionElementWithResult({type, text, ariaLabel, id, disabled}){
-  return `${getResultFieldWithLabel()}${getActionElementToWriteOnResult({type, text, ariaLabel, id, disabled})}`
+function getActionElementWithResult({type, text, ariaLabel, id, disabled, title}){
+  return `${getResultFieldWithLabel()}${getActionElementToWriteOnResult({type, text, ariaLabel, id, disabled, title})}`
 }
 
-function getActionElementToWriteOnResult({type, text, ariaLabel, id, disabled}){
+function getActionElementToWriteOnResult({type, text, ariaLabel, id, disabled, title}){
   let ariaLabelHtml = ariaLabel ? `aria-label="${ariaLabel}"` : ''
   let _id = id ?? crypto.randomUUID()
   let disabledHtml = disabled ? 'disabled' : ''
+  let titleHtml = title ? `title="${title}"` : ''
   switch (type){
-    case 'button': return `<button id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" ${disabledHtml}>${text}</button>`
-    case 'input button': return `<input type="button" id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" value="${text}" ${disabledHtml}>`
-    case 'input submit': return `<input type="submit" id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" value="${text}" ${disabledHtml}>`
-    case 'link': return `<a href="#" id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" ${disabledHtml}>${text}</a>`
+    case 'button': return `<button id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" ${titleHtml} ${disabledHtml}>${text}</button>`
+    case 'input button': return `<input type="button" id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" value="${text}" ${titleHtml} ${disabledHtml}>`
+    case 'input submit': return `<input type="submit" id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" value="${text}" ${titleHtml} ${disabledHtml}>`
+    case 'link': return `<a href="#" id="${_id}" ${ariaLabelHtml} onclick="document.getElementById('result').value = 'clicked'" ${titleHtml} ${disabledHtml}>${text}</a>`
     default: throw new Error(`Unsupported type ${type}`)
   }
 }
@@ -311,16 +312,29 @@ function getElementTypeTextProperty(type){
           })
         }
 
-        for(let idTestCase of identifierTestCases){
-          it(`must click the ${elementType} based on the aria-label when the text is not readable ${idTestCase.condition}`, async function () {
-            await server.setBody(getActionElementWithResult({type: elementType, text: 'X', ariaLabel: idTestCase.labelName}))
-            await user.open(server.url)
-            await user.doAction(idTestCase.property)
+        //TODO: hay un problema con el "aria-label" y es que su valor no es visible en los browsers
+        //si el botón no es del todo legible porque está utilizando un símbolo, tenemos la propiedad "title" para describirlo mejor
+        //o si ponemos una imagen tenemos el atributo "alt"
+        //ambos son visibles tanto por screen readers como por los usuarios que pueden ver
+        //dicen que "title" no es leída por todos los screen readers, entiendo que eso es su problema y deberían mejorar la implementación
+        //también es verdad que incluso en el estandar de html se recomienda no utilizar "title" por este motivo, me parece que está mal
+        //que son los screen readers y los browsers los que deben adaptarse al estandar y no al contrario
+        //y el estandar debe adaptarse a los usuarios, para mí lo correcto sería que, o bien aria-label se mostrara en todos los agentes
+        //o title se mostrara en todos los agentes. mientras tanto voy a solicitar que se utilice "title" o "alt". es lo que da más probabilidad de ser entendido
+        //también podemos pedir que si hay un "title" tenga que haber también un "aria-label" con el mismo contenido
+
+        //o mientras HTML soluciona sus problemas podríamos no reconocer ninguno de los dos. O se pone el texto tal cual, o se pone una imagen con "alt".
+
+        // for(let idTestCase of identifierTestCases){
+        //   it(`must click the ${elementType} based on the aria-label when the text is not readable ${idTestCase.condition}`, async function () {
+        //     await server.setBody(getActionElementWithResult({type: elementType, text: '>', ariaLabel: idTestCase.labelName}))
+        //     await user.open(server.url)
+        //     await user.doAction(idTestCase.property)
     
-            const clicked = await user.get('result')
-            expect(clicked).to.equal('clicked')
-          })
-        }
+        //     const clicked = await user.get('result')
+        //     expect(clicked).to.equal('clicked')
+        //   })
+        // }
   
         // it('must look also for matching title when content is an icon', async function () {
         //   server.setBody(`
@@ -334,6 +348,17 @@ function getElementTypeTextProperty(type){
         //   const clicked = await user.get('result')
         //   expect(clicked).to.equal('clicked')
         // })
+
+        for(let idTestCase of identifierTestCases){
+          it(`must click the ${elementType} based on the title attribute when the text is not readable ${idTestCase.condition}`, async function () {
+            await server.setBody(getActionElementWithResult({type: elementType, text: '>', title: idTestCase.labelName}))
+            await user.open(server.url)
+            await user.doAction(idTestCase.property)
+    
+            const clicked = await user.get('result')
+            expect(clicked).to.equal('clicked')
+          })
+        }
   
         it(`must click ${elementType} which text is filled up to 1 second after loading the webpage`, async function () {
           let htmlBody = `
@@ -377,36 +402,6 @@ function getElementTypeTextProperty(type){
           })
         })
       })
-
     }
-    describe('when the action is a button', function () {
-      xit('must look also for matching title when content is an icon', async function () {
-        server.setBody(`
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    <button onclick="document.getElementById('result').value = 'clicked'" title="perform action with button"><span class="glyphicon"></span></button>
-                `)
-        await user.open(server.url)
-        await user.doAction('perform action with button')
-
-        const clicked = await user.get('result')
-        expect(clicked).to.equal('clicked')
-      })
-    })
-
-    describe('when the action is a link', function () {
-      xit('must look also for a matching title when the content is an icon', async function () {
-        server.setBody(`
-                    <label for="result">Result</label>
-                    <input type="text" id="result">
-                    <a href="#" onclick="document.getElementById('result').value = 'clicked'" title="perform ACTION with input link">+</a>
-                `)
-        await user.open(server.url)
-        await user.doAction('perform action with input LINK')
-
-        const result = await user.get('result')
-        expect(result).to.equal('clicked')
-      })
-    })
   })
 })
