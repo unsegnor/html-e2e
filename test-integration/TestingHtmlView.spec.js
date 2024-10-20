@@ -279,7 +279,7 @@ function getElementTypeTextProperty(type){
     case 'button': return 'innerText'
     case 'input button': return 'value'
     case 'input submit': return 'value'
-    case 'link': return 'text'
+    case 'link': return 'innerText'
     default: throw new Error(`There is no text property defined for type ${type}`)
   }
 }
@@ -312,42 +312,17 @@ function getElementTypeTextProperty(type){
           })
         }
 
-        //TODO: hay un problema con el "aria-label" y es que su valor no es visible en los browsers
-        //si el botón no es del todo legible porque está utilizando un símbolo, tenemos la propiedad "title" para describirlo mejor
-        //o si ponemos una imagen tenemos el atributo "alt"
-        //ambos son visibles tanto por screen readers como por los usuarios que pueden ver
-        //dicen que "title" no es leída por todos los screen readers, entiendo que eso es su problema y deberían mejorar la implementación
-        //también es verdad que incluso en el estandar de html se recomienda no utilizar "title" por este motivo, me parece que está mal
-        //que son los screen readers y los browsers los que deben adaptarse al estandar y no al contrario
-        //y el estandar debe adaptarse a los usuarios, para mí lo correcto sería que, o bien aria-label se mostrara en todos los agentes
-        //o title se mostrara en todos los agentes. mientras tanto voy a solicitar que se utilice "title" o "alt". es lo que da más probabilidad de ser entendido
-        //también podemos pedir que si hay un "title" tenga que haber también un "aria-label" con el mismo contenido
-
-        //o mientras HTML soluciona sus problemas podríamos no reconocer ninguno de los dos. O se pone el texto tal cual, o se pone una imagen con "alt".
-
-        // for(let idTestCase of identifierTestCases){
-        //   it(`must click the ${elementType} based on the aria-label when the text is not readable ${idTestCase.condition}`, async function () {
-        //     await server.setBody(getActionElementWithResult({type: elementType, text: '>', ariaLabel: idTestCase.labelName}))
-        //     await user.open(server.url)
-        //     await user.doAction(idTestCase.property)
-    
-        //     const clicked = await user.get('result')
-        //     expect(clicked).to.equal('clicked')
-        //   })
-        // }
-  
-        // it('must look also for matching title when content is an icon', async function () {
-        //   server.setBody(`
-        //               <label for="result">Result</label>
-        //               <input type="text" id="result">
-        //               <button onclick="document.getElementById('result').value = 'clicked'" title="perform action with button"><span class="glyphicon"></span></button>
-        //           `)
-        //   await user.open(server.url)
-        //   await user.doAction('perform action with button')
-  
-        //   const clicked = await user.get('result')
-        //   expect(clicked).to.equal('clicked')
-        // })
+        // TODO: There is a problem with the "aria-label" because its value is not visible in the browsers
+        // If the button isn't entirely legible because it's using a symbol, we have the "title" property to better describe it
+        // Or if we add an image, we have the "alt" attribute
+        // Both are visible to screen readers as well as users who can see
+        // They say that "title" isn't read by all screen readers; I understand that's their issue and they should improve their implementation
+        // It's also true that even in the HTML standard it's recommended not to use "title" for this reason, which seems wrong to me
+        // Screen readers and browsers should adapt to the standard and not the other way around
+        // And the standard should adapt to the users; to me, the correct approach would be for either "aria-label" to be displayed in all agents
+        // Or for "title" to be displayed in all agents. Meanwhile, I'll suggest using "title" or "alt" as it gives the highest chance of being understood
+        // We can also request that if there is a "title", there should also be an "aria-label" with the same content
+        //or while HTML standard solves their problems we could not recognize any of those. Either you set the text or you use an img with "alt".
 
         for(let idTestCase of identifierTestCases){
           it(`must click the ${elementType} based on the title attribute when the text is not readable ${idTestCase.condition}`, async function () {
