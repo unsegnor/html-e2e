@@ -16,7 +16,7 @@
     "cucumber": "6.0.7",
     "expect-to-throw": "3.0.48",
     "express": "4.21.1",
-    "get-port": "5.1.1",
+    "get-port": "7.1.0",
     "mocha": "10.7.3"
   },
   "scripts": {
