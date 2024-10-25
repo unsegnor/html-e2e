@@ -258,6 +258,16 @@ for(let elementType of [
         })
       }
     })
+
+    it(`must wait until no progress tag is present`, async function () {
+      await server.setBody(`
+        ${getProgressTag({timeToDisappear:2000})}
+        ${generateInputWithLabel({type: elementType, label: 'anylabel', value: '5', valueAfterLoading: '18', loadTime: 2000})}`)
+      await user.open(server.url)
+      await user.set('anylabel', 'myValue')
+      const value = await user.get('anylabel')
+      expect(value).to.equal('myValue')
+    })
   })
 }
 

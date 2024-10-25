@@ -49,6 +49,7 @@ module.exports = async function (testUserOptions) {
   }
 
   async function set (property, value) {
+    await waitFor(noRunningProgress.bind(this))
     const relatedInput = await getPropertyInput(property)
     await relatedInput.clear()
     await relatedInput.sendKeys(value)
