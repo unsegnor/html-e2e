@@ -305,9 +305,10 @@ function getElementTypeTextProperty(type){
 }
 
 function getProgressTag({timeToDisappear}){
+  let id = crypto.randomUUID()
   return `
-  <script>setTimeout(function(){ document.getElementById('progressTagId').remove()}, ${timeToDisappear})</script>
-  <progress id="progressTagId"></progress>`
+  <script>setTimeout(function(){ document.getElementById('${id}').remove()}, ${timeToDisappear})</script>
+  <progress id="${id}"></progress>`
 }
 
   describe('doAction', function () {
