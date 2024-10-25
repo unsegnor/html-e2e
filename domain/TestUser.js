@@ -31,10 +31,11 @@ module.exports = async function (testUserOptions) {
   }
 
   async function doAction (description) {
+    await waitFor(noRunningProgress.bind(this))
     const option = await Promise.race([
-      waitTo(getActionButtonFor.bind(this, description)),
-      waitTo(getActionInputFor.bind(this, description)),
-      waitTo(getActionLinkFor.bind(this, description))
+      waitFor(getActionButtonFor.bind(this, description)),
+      waitFor(getActionInputFor.bind(this, description)),
+      waitFor(getActionLinkFor.bind(this, description))
     ])
 
     if (!option) throw new Error(`user could not ${description}`)
@@ -42,16 +43,23 @@ module.exports = async function (testUserOptions) {
     await option.click()
   }
 
+  async function noRunningProgress(){
+    const progressTags = await driver.findElements(By.css('progress'))
+    return (progressTags.length == 0)
+  }
+
   async function set (property, value) {
+    await waitFor(noRunningProgress.bind(this))
     const relatedInput = await getPropertyInput(property)
     await relatedInput.clear()
     await relatedInput.sendKeys(value)
   }
 
   async function get (property) {
+    await waitFor(noRunningProgress.bind(this))
     const relatedInput = await getPropertyInput(property)
     const relatedInputValue = await relatedInput.getAttribute('value')
-
+    
     return relatedInputValue
   }
 
@@ -114,7 +122,7 @@ module.exports = async function (testUserOptions) {
     return relatedInput
   }
 
-  async function waitTo (fn) {
+  async function waitFor (fn) {
     try {
       return await driver.wait(async function () {
         return fn()
@@ -179,8 +187,8 @@ module.exports = async function (testUserOptions) {
 
   async function mustBeAbleTo (description) {
     const options = await Promise.race([
-      waitTo(getActionButtonFor.bind(this, description)),
-      waitTo(getActionInputFor.bind(this, description))])
+      waitFor(getActionButtonFor.bind(this, description)),
+      waitFor(getActionInputFor.bind(this, description))])
     if (!options || options.length == 0) throw new Error(`User is not able to ${description}`)
   }
 
