@@ -120,18 +120,19 @@ describe('testing html view', function () {
 //TODO: add support for progress
 //TODO: add support for tables
 
-function generateInputWithLabel({type, label='anyLabel:', value='anyValue', inputId='any_id', labelFor=inputId}){
+function generateInputWithLabel({type, label='anyLabel:', value='anyValue', inputId='any_id', labelFor=inputId, valueAfterLoading, loadTime}){
   let labelhtml = `<label for="${labelFor}">${label}</label>`
-  let inputElement = generateInput({type, value, id:inputId})
+  let inputElement = generateInput({type, value, id:inputId, valueAfterLoading, loadTime})
   return `${labelhtml}${inputElement}`
 }
 
-function generateInput({type, value, id, placeholder}){
+function generateInput({type, value, id, placeholder, valueAfterLoading, loadTime}){
   let placeholderHtml = placeholder ? `placeholder="${placeholder}"` : ''
   let _id = id ?? crypto.randomUUID()
-  if (type == 'textarea') return `<textarea id="${_id}" ${placeholderHtml}>${value}</textarea>`
-  if (type == 'text')  return `<input type="text" id="${_id}" value="${value}" ${placeholderHtml}>`
-  if (type == 'password')  return `<input type="password" id="${_id}" value="${value}" ${placeholderHtml}>`
+  let script = loadTime ? `<script>setTimeout(function(){ document.getElementById('${_id}').value = '${valueAfterLoading}'}, ${loadTime})</script>` : ''
+  if (type == 'textarea') return `${script}<textarea id="${_id}" ${placeholderHtml}>${value}</textarea>`
+  if (type == 'text')  return `${script}<input type="text" id="${_id}" value="${value}" ${placeholderHtml}>`
+  if (type == 'password')  return `${script}<input type="password" id="${_id}" value="${value}" ${placeholderHtml}>`
   throw new Error(`Unsupported type ${type}`)
 }
 
@@ -184,6 +185,15 @@ for(let elementType of [
           await expectToThrow('missing input field for label "Age:"', async function () {
             await user.get('age')
           })
+        })
+        //TODO: add this test for set
+        it(`must wait until no progress tag is present`, async function () {
+          await server.setBody(`
+            ${getProgressTag({timeToDisappear:2000})}
+            ${generateInputWithLabel({type: elementType, label: 'anylabel', value: '5', valueAfterLoading: '18', loadTime: 1800})}`)
+          await user.open(server.url)
+          const age = await user.get('anylabel')
+          expect(age).to.equal('18')
         })
       })
       describe(`when the identifier of ${elementType} element is in a placeholder`, function () {
@@ -284,6 +294,12 @@ function getElementTypeTextProperty(type){
   }
 }
 
+function getProgressTag({timeToDisappear}){
+  return `
+  <script>setTimeout(function(){ document.getElementById('progressTagId').remove()}, ${timeToDisappear})</script>
+  <progress id="progressTagId"></progress>`
+}
+
   describe('doAction', function () {
     for(let elementType of [
       'button',
@@ -378,5 +394,28 @@ function getElementTypeTextProperty(type){
         })
       })
     }
+
+    it('must wait until no progress tag is visible', async function(){
+      await server.setBody(`
+        ${getProgressTag({timeToDisappear:2000})}
+        <input type="text" id="click-counter" placeholder="click count" value="0"/>
+        <input type="text" id="last-click-moment" placeholder="last click moment" value=""/>
+        <button onclick="
+          document.getElementById('click-counter').value = parseInt(document.getElementById('click-counter').value) + 1;
+          document.getElementById('last-click-moment').value = Date.now();
+          ">perform action</button>
+        `)
+      const startTime = Date.now()
+      await user.open(server.url)
+      await user.doAction('perform action')
+
+      const clickCount = await user.get('click count')
+      const lastClickMomentNumber = await user.get('last click moment')
+      const lastClickMoment = parseInt(lastClickMomentNumber)
+      const timeToClick = lastClickMoment - startTime
+      expect(clickCount).to.equal('1')
+      expect(timeToClick).to.be.greaterThanOrEqual(2000)
+    })
+
   })
 })
