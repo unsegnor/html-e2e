@@ -186,7 +186,6 @@ for(let elementType of [
             await user.get('age')
           })
         })
-        //TODO: add this test for set
         it(`must wait until no progress tag is present`, async function () {
           await server.setBody(`
             ${getProgressTag({timeToDisappear:2000})}
