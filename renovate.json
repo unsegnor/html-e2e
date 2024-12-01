@@ -1,4 +1,4 @@
 {
-  "extends": ["group:allNonMajor"],
+  "extends": ["group:stryker-jsMonorepo"],
   "automerge": true
 }
