@@ -10,7 +10,7 @@
     "standard": "^17.0.0"
   },
   "devDependencies": {
-    "@stryker-mutator/core": "6.4.2",
+    "@stryker-mutator/core": "8.6.0",
     "@stryker-mutator/mocha-runner": "7.0.0",
     "chai": "4.5.0",
     "cucumber": "6.0.7",
