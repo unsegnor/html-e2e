@@ -14,7 +14,7 @@
     "@stryker-mutator/mocha-runner": "8.6.0",
     "chai": "4.5.0",
     "cucumber": "6.0.7",
-    "expect-to-throw": "3.0.51",
+    "expect-to-throw": "3.0.53",
     "express": "4.21.1",
     "get-port": "5.1.1",
     "mocha": "10.8.2"
