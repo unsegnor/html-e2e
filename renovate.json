@@ -1,3 +1,4 @@
 {
+  "extends": ["group:allNonMajor"],
   "automerge": true
 }
