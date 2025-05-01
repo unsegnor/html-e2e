@@ -17,7 +17,7 @@
     "expect-to-throw": "3.0.59",
     "express": "5.1.0",
     "get-port": "5.1.1",
-    "mocha": "11.1.0"
+    "mocha": "11.2.2"
   },
   "scripts": {
     "test": "npm run test-mocha && npm run test-cucumber && npm run test-package",
