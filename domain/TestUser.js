@@ -32,15 +32,17 @@ module.exports = async function (testUserOptions) {
 
   async function doAction (description) {
     await waitFor(noRunningProgress.bind(this))
-    const option = await Promise.race([
-      waitFor(getActionButtonFor.bind(this, description)),
-      waitFor(getActionInputFor.bind(this, description)),
-      waitFor(getActionLinkFor.bind(this, description))
-    ])
+    await retryOnStaleElement(async () => {
+      const option = await Promise.race([
+        waitFor(getActionButtonFor.bind(this, description)),
+        waitFor(getActionInputFor.bind(this, description)),
+        waitFor(getActionLinkFor.bind(this, description))
+      ])
 
-    if (!option) throw new Error(`user could not ${description}`)
+      if (!option) throw new Error(`user could not ${description}`)
 
-    await option.click()
+      await option.click()
+    })
   }
 
   async function noRunningProgress(){
@@ -50,17 +52,21 @@ module.exports = async function (testUserOptions) {
 
   async function set (property, value) {
     await waitFor(noRunningProgress.bind(this))
-    const relatedInput = await getPropertyInput(property)
-    await relatedInput.clear()
-    await relatedInput.sendKeys(value)
+    await retryOnStaleElement(async () => {
+      const relatedInput = await getPropertyInput(property)
+      await relatedInput.clear()
+      await relatedInput.sendKeys(value)
+    })
   }
 
   async function get (property) {
     await waitFor(noRunningProgress.bind(this))
-    const relatedInput = await getPropertyInput(property)
-    const relatedInputValue = await relatedInput.getAttribute('value')
-    
-    return relatedInputValue
+    return await retryOnStaleElement(async () => {
+      const relatedInput = await getPropertyInput(property)
+      const relatedInputValue = await relatedInput.getAttribute('value')
+      
+      return relatedInputValue
+    })
   }
 
   async function getInputLookingForLabels(property){
@@ -130,6 +136,26 @@ module.exports = async function (testUserOptions) {
     } catch (e) {
       if (e.name != 'TimeoutError') throw e
     }
+  }
+
+  async function retryOnStaleElement(fn, maxRetries = 5) {
+    let lastError
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await fn()
+      } catch (error) {
+        if (error.name === 'StaleElementReferenceError') {
+          lastError = error
+          if (i < maxRetries - 1) {
+            const delay = 200 * (i + 1)
+            await new Promise(resolve => setTimeout(resolve, delay))
+          }
+          continue
+        }
+        throw error
+      }
+    }
+    throw lastError
   }
 
   async function attributeHasValue({element, attribute, value}){
