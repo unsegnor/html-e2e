@@ -3,7 +3,7 @@ const { expect } = require('chai')
 const FakeServer = require('./FakeServer')
 const crypto = require('crypto');
 
-describe.only('stale element reproduction', function () {
+describe('stale element reproduction', function () {
   let server, user
 
   this.beforeEach(async function () {
