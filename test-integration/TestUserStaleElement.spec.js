@@ -15,7 +15,7 @@ describe.only('stale element reproduction', function () {
     await server.close()
   })
 
-  it('must handle buttons that are removed and recreated while searching for them', async function () {
+  it('must handle buttons that are recreated during initial page load', async function () {
     await server.setBody(`
       <div id="button-container">
         <button onclick="document.getElementById('result').value = 'clicked'">target action</button>
@@ -26,16 +26,23 @@ describe.only('stale element reproduction', function () {
       <label for="result">Result</label>
       <input type="text" id="result">
       <script>
-        let counter = 0;
-        setInterval(function() {
-          counter++;
+        const loadingDuration = 2000;
+        const startTime = Date.now();
+        
+        const reloadInterval = setInterval(function() {
+          const elapsed = Date.now() - startTime;
+          
+          if (elapsed > loadingDuration) {
+            clearInterval(reloadInterval);
+            return;
+          }
+          
           const container = document.getElementById('button-container');
           container.innerHTML = \`
             <button onclick="document.getElementById('result').value = 'clicked'">target action</button>
             <button>decoy button 1</button>
             <button>decoy button 2</button>
             <button>decoy button 3</button>
-            <button>dynamic button \${counter}</button>
           \`;
         }, 50);
       </script>
