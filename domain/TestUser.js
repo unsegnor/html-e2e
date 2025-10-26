@@ -144,7 +144,7 @@ module.exports = async function (testUserOptions) {
       try {
         return await fn()
       } catch (error) {
-        if (error.name === 'StaleElementReferenceError') {
+        if (error.name === 'StaleElementReferenceError' || error.name === 'ElementNotInteractableError') {
           lastError = error
           if (i < maxRetries - 1) {
             const delay = 200 * (i + 1)
