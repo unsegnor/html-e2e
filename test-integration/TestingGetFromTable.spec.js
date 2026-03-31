@@ -3,7 +3,7 @@ const { expect } = require('chai')
 const FakeServer = require('./FakeServer')
 const expectToThrow = require('expect-to-throw')
 
-describe('get from table row', function () {
+describe('getAll from table', function () {
   let server, user
 
   this.beforeEach(async function () {
@@ -25,8 +25,8 @@ describe('get from table row', function () {
     return `<table><caption>${caption}</caption><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table>`
   }
 
-  describe('get — reading plain text cells', function () {
-    it('must return the value of a cell identified by table caption and row filter', async function () {
+  describe('returns one row object per table row', function () {
+    it('must return an array with as many objects as rows in the table', async function () {
       server.setBody(tableWithCaption({
         caption: 'personas',
         headers: ['nombre', 'edad'],
@@ -34,13 +34,23 @@ describe('get from table row', function () {
       }))
       await user.open(server.url)
 
-      const maria = await user.get('personas', {nombre: 'María'})
-      const edad = await maria.get('edad')
+      const personas = await user.getAll('personas')
 
-      expect(edad).to.equal('35')
+      expect(personas).to.have.length(2)
     })
 
-    it('must return the correct row when there are multiple rows', async function () {
+    it('must return an empty array when the table has no rows', async function () {
+      server.setBody(tableWithCaption({caption: 'personas', headers: ['nombre', 'edad'], rows: []}))
+      await user.open(server.url)
+
+      const personas = await user.getAll('personas')
+
+      expect(personas).to.have.length(0)
+    })
+  })
+
+  describe('get — reading cell text', function () {
+    it('must return the text of the cell in the named column for each row', async function () {
       server.setBody(tableWithCaption({
         caption: 'personas',
         headers: ['nombre', 'edad'],
@@ -48,43 +58,29 @@ describe('get from table row', function () {
       }))
       await user.open(server.url)
 
-      const juan = await user.get('personas', {nombre: 'Juan'})
-      const edad = await juan.get('edad')
+      const personas = await user.getAll('personas')
 
-      expect(edad).to.equal('28')
+      expect(await personas[0].get('nombre')).to.equal('María')
+      expect(await personas[1].get('nombre')).to.equal('Juan')
     })
 
-    it('must match caption and column headers ignoring case', async function () {
+    it('must return the correct value for each column in each row', async function () {
       server.setBody(tableWithCaption({
-        caption: 'PERSONAS',
-        headers: ['NOMBRE', 'EDAD'],
-        rows: [['María', '35']]
-      }))
-      await user.open(server.url)
-
-      const maria = await user.get('personas', {nombre: 'María'})
-      const edad = await maria.get('edad')
-
-      expect(edad).to.equal('35')
-    })
-
-    it('must match caption ignoring surrounding spaces', async function () {
-      server.setBody(tableWithCaption({
-        caption: '  personas  ',
+        caption: 'personas',
         headers: ['nombre', 'edad'],
-        rows: [['María', '35']]
+        rows: [['María', '35'], ['Juan', '28']]
       }))
       await user.open(server.url)
 
-      const maria = await user.get('personas', {nombre: 'María'})
-      const edad = await maria.get('edad')
+      const personas = await user.getAll('personas')
 
-      expect(edad).to.equal('35')
+      expect(await personas[0].get('edad')).to.equal('35')
+      expect(await personas[1].get('edad')).to.equal('28')
     })
   })
 
   describe('set — editing an input inside a cell', function () {
-    it('must set a value in an input inside the matching row and read it back', async function () {
+    it('must set the value of an input in the named column and read it back', async function () {
       server.setBody(`
         <table>
           <caption>tareas</caption>
@@ -99,16 +95,16 @@ describe('get from table row', function () {
       `)
       await user.open(server.url)
 
-      const tarea = await user.get('tareas', {nombre: 'Arreglar bug'})
-      await tarea.set('estado', 'hecho')
-      const estado = await tarea.get('estado')
+      const tareas = await user.getAll('tareas')
+      await tareas[0].set('estado', 'hecho')
+      const estado = await tareas[0].get('estado')
 
       expect(estado).to.equal('hecho')
     })
   })
 
   describe('doAction — clicking a button inside a row', function () {
-    it('must perform an action on a button inside the matching row', async function () {
+    it('must click the button in the matching row and not in other rows', async function () {
       server.setBody(`
         <label for="result">resultado</label>
         <input type="text" id="result" value="">
@@ -118,49 +114,73 @@ describe('get from table row', function () {
           <tbody>
             <tr>
               <td>Arreglar bug</td>
-              <td><button onclick="document.getElementById('result').value = 'eliminado'">eliminar</button></td>
+              <td><button onclick="document.getElementById('result').value = 'correcto'">eliminar</button></td>
             </tr>
             <tr>
               <td>Escribir tests</td>
-              <td><button onclick="document.getElementById('result').value = 'eliminado incorrecto'">eliminar</button></td>
+              <td><button onclick="document.getElementById('result').value = 'incorrecto'">eliminar</button></td>
             </tr>
           </tbody>
         </table>
       `)
       await user.open(server.url)
 
-      const tarea = await user.get('tareas', {nombre: 'Arreglar bug'})
-      await tarea.doAction('eliminar')
+      const tareas = await user.getAll('tareas')
+      await tareas[0].doAction('eliminar')
       const resultado = await user.get('resultado')
 
-      expect(resultado).to.equal('eliminado')
+      expect(resultado).to.equal('correcto')
     })
   })
 
-  describe('error cases', function () {
-    it('must throw when the filter does not match any row', async function () {
+  describe('case insensitive matching', function () {
+    it('must match the caption ignoring case', async function () {
       server.setBody(tableWithCaption({
-        caption: 'personas',
+        caption: 'PERSONAS',
         headers: ['nombre', 'edad'],
         rows: [['María', '35']]
       }))
       await user.open(server.url)
 
-      await expectToThrow('row not found', async function () {
-        await user.get('personas', {nombre: 'Pedro'})
-      })
+      const personas = await user.getAll('personas')
+
+      expect(await personas[0].get('nombre')).to.equal('María')
     })
 
-    it('must throw when no table has the given caption', async function () {
+    it('must match the caption ignoring surrounding spaces', async function () {
       server.setBody(tableWithCaption({
-        caption: 'productos',
-        headers: ['nombre', 'precio'],
-        rows: [['Pan', '1.5']]
+        caption: '  personas  ',
+        headers: ['nombre', 'edad'],
+        rows: [['María', '35']]
       }))
       await user.open(server.url)
 
-      await expectToThrow('table "personas" not found', async function () {
-        await user.get('personas', {nombre: 'María'})
+      const personas = await user.getAll('personas')
+
+      expect(await personas[0].get('nombre')).to.equal('María')
+    })
+
+    it('must match column headers ignoring case', async function () {
+      server.setBody(tableWithCaption({
+        caption: 'personas',
+        headers: ['NOMBRE', 'EDAD'],
+        rows: [['María', '35']]
+      }))
+      await user.open(server.url)
+
+      const personas = await user.getAll('personas')
+
+      expect(await personas[0].get('nombre')).to.equal('María')
+    })
+  })
+
+  describe('error cases', function () {
+    it('must throw when no table has the given caption', async function () {
+      server.setBody(tableWithCaption({caption: 'productos', headers: ['nombre'], rows: [['Pan']]}))
+      await user.open(server.url)
+
+      await expectToThrow('"personas" not found', async function () {
+        await user.getAll('personas')
       })
     })
 
@@ -168,8 +188,8 @@ describe('get from table row', function () {
       server.setBody('<p>no table here</p>')
       await user.open(server.url)
 
-      await expectToThrow('table "personas" not found', async function () {
-        await user.get('personas', {nombre: 'María'})
+      await expectToThrow('"personas" not found', async function () {
+        await user.getAll('personas')
       })
     })
 
@@ -177,8 +197,8 @@ describe('get from table row', function () {
       server.setBody('<div>personas</div><div>María</div><div>35</div>')
       await user.open(server.url)
 
-      await expectToThrow('table "personas" not found', async function () {
-        await user.get('personas', {nombre: 'María'})
+      await expectToThrow('"personas" not found', async function () {
+        await user.getAll('personas')
       })
     })
   })

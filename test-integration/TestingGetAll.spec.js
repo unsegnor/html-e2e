@@ -90,7 +90,7 @@ describe('getAll', function () {
       server.setBody(semanticList({label: 'Tasks', items: ['task 1']}))
       await user.open(server.url)
 
-      await expectToThrow('list "users" not found', async function () {
+      await expectToThrow('"users" not found', async function () {
         await user.getAll('users')
       })
     })
@@ -130,7 +130,7 @@ describe('getAll', function () {
       server.setBody(twoLists)
       await user.open(server.url)
 
-      await expectToThrow('list "products" not found', async function () {
+      await expectToThrow('"products" not found', async function () {
         await user.getAll('products')
       })
     })
@@ -142,7 +142,7 @@ describe('getAll', function () {
         server.setBody(nonSemanticSection({label: 'Tasks', items: ['task 1', 'task 2'], itemTag}))
         await user.open(server.url)
 
-        await expectToThrow('list "tasks" not found', async function () {
+        await expectToThrow('"tasks" not found', async function () {
           await user.getAll('tasks')
         })
       })

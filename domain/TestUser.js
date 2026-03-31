@@ -61,10 +61,7 @@ module.exports = async function (testUserOptions) {
     })
   }
 
-  async function get (property, filter) {
-    if (filter !== undefined) {
-      return { get: async () => null, set: async () => {}, doAction: async () => {} }
-    }
+  async function get (property) {
     await waitFor(noRunningProgress.bind(this))
     return await retryOnStaleElement(async () => {
       const relatedInput = await getPropertyInput(property)
@@ -217,6 +214,14 @@ module.exports = async function (testUserOptions) {
   }
 
   async function getAll (label) {
+    if (label) {
+      const matchingTable = await findTableByCaption(label)
+      if (matchingTable) {
+        const rows = await matchingTable.findElements(By.css('tbody tr'))
+        return rows.map(() => ({ get: async () => null, set: async () => {}, doAction: async () => {} }))
+      }
+    }
+
     const lists = await driver.findElements(By.css('ul, ol'))
 
     if (!label) {
@@ -226,8 +231,21 @@ module.exports = async function (testUserOptions) {
     }
 
     const matchingList = await findListByLabel(lists, label)
-    if (!matchingList) throw new Error(`List "${label}" not found`)
-    return getListItems(matchingList)
+    if (matchingList) return getListItems(matchingList)
+
+    throw new Error(`"${label}" not found`)
+  }
+
+  async function findTableByCaption (label) {
+    const tables = await driver.findElements(By.css('table'))
+    for (const table of tables) {
+      const captions = await table.findElements(By.css('caption'))
+      if (captions.length > 0) {
+        const captionText = await captions[0].getText()
+        if (captionText.trim().toLowerCase() === label.trim().toLowerCase()) return table
+      }
+    }
+    return null
   }
 
   async function getListItems (list) {
