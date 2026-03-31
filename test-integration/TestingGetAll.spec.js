@@ -26,6 +26,11 @@ describe('getAll', function () {
     return `<ul>${listItems}</ul>`
   }
 
+  const labelMatchingCases = [
+    {condition: 'ignoring case', labelInHtml: 'PENDING Tasks', query: 'pending tasks'},
+    {condition: 'ignoring surrounding spaces', labelInHtml: '  Tasks  ', query: 'tasks'}
+  ]
+
   describe('when there is only one list', function () {
     it('must return all items as an array of strings without specifying a label', async function () {
       server.setBody(listWithoutLabel(['buy milk', 'walk dog', 'read book']))
@@ -36,50 +41,27 @@ describe('getAll', function () {
       expect(items).to.deep.equal(['buy milk', 'walk dog', 'read book'])
     })
 
-    it('must return all items identified by its visible h2 label', async function () {
-      server.setBody(listWithLabel({label: 'Tasks', items: ['task 1', 'task 2', 'task 3']}))
-      await user.open(server.url)
+    for (const labelTag of ['h1', 'h2', 'h3']) {
+      it(`must return all items identified by its visible ${labelTag} label`, async function () {
+        server.setBody(listWithLabel({label: 'Tasks', items: ['task 1', 'task 2'], labelTag}))
+        await user.open(server.url)
 
-      const items = await user.getAll('tasks')
+        const items = await user.getAll('tasks')
 
-      expect(items).to.deep.equal(['task 1', 'task 2', 'task 3'])
-    })
+        expect(items).to.deep.equal(['task 1', 'task 2'])
+      })
+    }
 
-    it('must return all items identified by its visible h1 label', async function () {
-      server.setBody(listWithLabel({label: 'Tasks', items: ['task 1', 'task 2'], labelTag: 'h1'}))
-      await user.open(server.url)
+    for (const {condition, labelInHtml, query} of labelMatchingCases) {
+      it(`must match the label ${condition}`, async function () {
+        server.setBody(listWithLabel({label: labelInHtml, items: ['task 1', 'task 2']}))
+        await user.open(server.url)
 
-      const items = await user.getAll('tasks')
+        const items = await user.getAll(query)
 
-      expect(items).to.deep.equal(['task 1', 'task 2'])
-    })
-
-    it('must return all items identified by its visible h3 label', async function () {
-      server.setBody(listWithLabel({label: 'Tasks', items: ['task 1', 'task 2'], labelTag: 'h3'}))
-      await user.open(server.url)
-
-      const items = await user.getAll('tasks')
-
-      expect(items).to.deep.equal(['task 1', 'task 2'])
-    })
-
-    it('must match the label ignoring case', async function () {
-      server.setBody(listWithLabel({label: 'PENDING Tasks', items: ['task 1', 'task 2']}))
-      await user.open(server.url)
-
-      const items = await user.getAll('pending tasks')
-
-      expect(items).to.deep.equal(['task 1', 'task 2'])
-    })
-
-    it('must match the label ignoring surrounding spaces', async function () {
-      server.setBody(listWithLabel({label: '  Tasks  ', items: ['task 1', 'task 2']}))
-      await user.open(server.url)
-
-      const items = await user.getAll('tasks')
-
-      expect(items).to.deep.equal(['task 1', 'task 2'])
-    })
+        expect(items).to.deep.equal(['task 1', 'task 2'])
+      })
+    }
 
     it('must return an empty array when the list has no items', async function () {
       server.setBody(listWithLabel({label: 'Tasks', items: []}))
@@ -110,35 +92,28 @@ describe('getAll', function () {
   })
 
   describe('when there are multiple lists', function () {
-    it('must return items from the correct list identified by its label', async function () {
-      server.setBody(
-        listWithLabel({label: 'Tasks', items: ['task 1', 'task 2']}) +
-        listWithLabel({label: 'Users', items: ['alice', 'bob', 'carol']})
-      )
-      await user.open(server.url)
+    const twoLists =
+      listWithLabel({label: 'Tasks', items: ['task 1', 'task 2']}) +
+      listWithLabel({label: 'Users', items: ['alice', 'bob', 'carol']})
 
-      const items = await user.getAll('tasks')
+    const listSelectionCases = [
+      {query: 'tasks', expected: ['task 1', 'task 2']},
+      {query: 'users', expected: ['alice', 'bob', 'carol']}
+    ]
 
-      expect(items).to.deep.equal(['task 1', 'task 2'])
-    })
+    for (const {query, expected} of listSelectionCases) {
+      it(`must return items from the list identified by label "${query}"`, async function () {
+        server.setBody(twoLists)
+        await user.open(server.url)
 
-    it('must return items from the other list when a different label is specified', async function () {
-      server.setBody(
-        listWithLabel({label: 'Tasks', items: ['task 1', 'task 2']}) +
-        listWithLabel({label: 'Users', items: ['alice', 'bob', 'carol']})
-      )
-      await user.open(server.url)
+        const items = await user.getAll(query)
 
-      const items = await user.getAll('users')
-
-      expect(items).to.deep.equal(['alice', 'bob', 'carol'])
-    })
+        expect(items).to.deep.equal(expected)
+      })
+    }
 
     it('must throw when no label is specified', async function () {
-      server.setBody(
-        listWithLabel({label: 'Tasks', items: ['task 1']}) +
-        listWithLabel({label: 'Users', items: ['alice']})
-      )
+      server.setBody(twoLists)
       await user.open(server.url)
 
       await expectToThrow('multiple lists found', async function () {
@@ -147,10 +122,7 @@ describe('getAll', function () {
     })
 
     it('must throw when the label does not match any list', async function () {
-      server.setBody(
-        listWithLabel({label: 'Tasks', items: ['task 1']}) +
-        listWithLabel({label: 'Users', items: ['alice']})
-      )
+      server.setBody(twoLists)
       await user.open(server.url)
 
       await expectToThrow('list "products" not found', async function () {
