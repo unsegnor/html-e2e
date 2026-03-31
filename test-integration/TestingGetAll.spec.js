@@ -16,14 +16,19 @@ describe('getAll', function () {
     await server.close()
   })
 
-  function listWithLabel ({label, items, labelTag = 'h2'}) {
+  function semanticList ({label, items, labelTag = 'h2'}) {
     const listItems = items.map(item => `<li>${item}</li>`).join('')
     return `<${labelTag}>${label}</${labelTag}><ul>${listItems}</ul>`
   }
 
-  function listWithoutLabel (items) {
+  function semanticListWithoutLabel (items) {
     const listItems = items.map(item => `<li>${item}</li>`).join('')
     return `<ul>${listItems}</ul>`
+  }
+
+  function nonSemanticSection ({label, items, labelTag = 'h2', itemTag = 'div'}) {
+    const itemElements = items.map(item => `<${itemTag}>${item}</${itemTag}>`).join('')
+    return `<${labelTag}>${label}</${labelTag}><div>${itemElements}</div>`
   }
 
   const labelMatchingCases = [
@@ -33,7 +38,7 @@ describe('getAll', function () {
 
   describe('when there is only one list', function () {
     it('must return all items as an array of strings without specifying a label', async function () {
-      server.setBody(listWithoutLabel(['buy milk', 'walk dog', 'read book']))
+      server.setBody(semanticListWithoutLabel(['buy milk', 'walk dog', 'read book']))
       await user.open(server.url)
 
       const items = await user.getAll()
@@ -43,7 +48,7 @@ describe('getAll', function () {
 
     for (const labelTag of ['h1', 'h2', 'h3']) {
       it(`must return all items identified by its visible ${labelTag} label`, async function () {
-        server.setBody(listWithLabel({label: 'Tasks', items: ['task 1', 'task 2'], labelTag}))
+        server.setBody(semanticList({label: 'Tasks', items: ['task 1', 'task 2'], labelTag}))
         await user.open(server.url)
 
         const items = await user.getAll('tasks')
@@ -54,7 +59,7 @@ describe('getAll', function () {
 
     for (const {condition, labelInHtml, query} of labelMatchingCases) {
       it(`must match the label ${condition}`, async function () {
-        server.setBody(listWithLabel({label: labelInHtml, items: ['task 1', 'task 2']}))
+        server.setBody(semanticList({label: labelInHtml, items: ['task 1', 'task 2']}))
         await user.open(server.url)
 
         const items = await user.getAll(query)
@@ -64,7 +69,7 @@ describe('getAll', function () {
     }
 
     it('must return an empty array when the list has no items', async function () {
-      server.setBody(listWithLabel({label: 'Tasks', items: []}))
+      server.setBody(semanticList({label: 'Tasks', items: []}))
       await user.open(server.url)
 
       const items = await user.getAll('tasks')
@@ -82,7 +87,7 @@ describe('getAll', function () {
     })
 
     it('must throw when the label does not match any list', async function () {
-      server.setBody(listWithLabel({label: 'Tasks', items: ['task 1']}))
+      server.setBody(semanticList({label: 'Tasks', items: ['task 1']}))
       await user.open(server.url)
 
       await expectToThrow('list "users" not found', async function () {
@@ -93,8 +98,8 @@ describe('getAll', function () {
 
   describe('when there are multiple lists', function () {
     const twoLists =
-      listWithLabel({label: 'Tasks', items: ['task 1', 'task 2']}) +
-      listWithLabel({label: 'Users', items: ['alice', 'bob', 'carol']})
+      semanticList({label: 'Tasks', items: ['task 1', 'task 2']}) +
+      semanticList({label: 'Users', items: ['alice', 'bob', 'carol']})
 
     const listSelectionCases = [
       {query: 'tasks', expected: ['task 1', 'task 2']},
@@ -127,6 +132,28 @@ describe('getAll', function () {
 
       await expectToThrow('list "products" not found', async function () {
         await user.getAll('products')
+      })
+    })
+  })
+
+  describe('when the HTML is not semantically correct', function () {
+    for (const itemTag of ['div', 'span', 'p']) {
+      it(`must throw when items are in <${itemTag}> instead of <li>`, async function () {
+        server.setBody(nonSemanticSection({label: 'Tasks', items: ['task 1', 'task 2'], itemTag}))
+        await user.open(server.url)
+
+        await expectToThrow('list "tasks" not found', async function () {
+          await user.getAll('tasks')
+        })
+      })
+    }
+
+    it('must throw when there is no semantic list at all', async function () {
+      server.setBody('<div>item 1</div><div>item 2</div>')
+      await user.open(server.url)
+
+      await expectToThrow('no list found', async function () {
+        await user.getAll()
       })
     })
   })
