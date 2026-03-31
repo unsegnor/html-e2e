@@ -213,7 +213,45 @@ module.exports = async function (testUserOptions) {
   }
 
   async function getAll (label) {
-    return []
+    const lists = await driver.findElements(By.css('ul, ol'))
+
+    if (!label) {
+      if (lists.length === 0) throw new Error('No list found')
+      if (lists.length > 1) throw new Error('Multiple lists found, please specify a label')
+      return getListItems(lists[0])
+    }
+
+    const matchingList = await findListByLabel(lists, label)
+    if (!matchingList) throw new Error(`List "${label}" not found`)
+    return getListItems(matchingList)
+  }
+
+  async function getListItems (list) {
+    const items = await list.findElements(By.css('li'))
+    const texts = []
+    for (const item of items) {
+      texts.push(await item.getText())
+    }
+    return texts
+  }
+
+  async function findListByLabel (lists, label) {
+    for (const list of lists) {
+      const heading = await driver.executeScript(`
+        let sibling = arguments[0].previousElementSibling
+        while (sibling) {
+          if (/^H[1-6]$/.test(sibling.tagName)) return sibling
+          sibling = sibling.previousElementSibling
+        }
+        return null
+      `, list)
+
+      if (heading) {
+        const headingText = await heading.getText()
+        if (headingText.trim().toLowerCase() === label.trim().toLowerCase()) return list
+      }
+    }
+    return null
   }
 
   async function mustBeAbleTo (description) {
