@@ -9,8 +9,8 @@ module.exports = async function () {
 
   app.get('/', (req, res) => {
     if (settedBody) res.send(`<html><head></head><body>${settedBody}</body></html>`)
-    else if (htmlFile) res.sendFile(__dirname + '/' + htmlFile + '.html')
-    else res.sendFile(__dirname + '/testView.html')
+    else if (htmlFile) res.sendFile(htmlFile + '.html', { root: __dirname })
+    else res.sendFile('testView.html', { root: __dirname })
   })
 
   async function wait (milliseconds) {
