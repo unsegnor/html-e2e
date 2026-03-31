@@ -217,8 +217,9 @@ module.exports = async function (testUserOptions) {
     if (label) {
       const matchingTable = await findTableByCaption(label)
       if (matchingTable) {
+        const headers = await getTableHeaders(matchingTable)
         const rows = await matchingTable.findElements(By.css('tbody tr'))
-        return rows.map(() => ({ get: async () => null, set: async () => {}, doAction: async () => {} }))
+        return rows.map(row => makeRowObject(row, headers))
       }
     }
 
@@ -234,6 +235,50 @@ module.exports = async function (testUserOptions) {
     if (matchingList) return getListItems(matchingList)
 
     throw new Error(`"${label}" not found`)
+  }
+
+  function makeRowObject (rowElement, headers) {
+    return {
+      get: async function (property) {
+        const columnIndex = headers.indexOf(property.trim().toLowerCase())
+        const cells = await rowElement.findElements(By.css('td'))
+        const cell = cells[columnIndex]
+        const inputs = await cell.findElements(By.css('input'))
+        if (inputs.length > 0) return inputs[0].getAttribute('value')
+        return cell.getText()
+      },
+      set: async function (property, value) {
+        const columnIndex = headers.indexOf(property.trim().toLowerCase())
+        const cells = await rowElement.findElements(By.css('td'))
+        const inputs = await cells[columnIndex].findElements(By.css('input'))
+        await inputs[0].clear()
+        await inputs[0].sendKeys(value)
+      },
+      doAction: async function (text) {
+        const buttons = await rowElement.findElements(By.css('button'))
+        for (const button of buttons) {
+          if ((await button.getText()).trim().toLowerCase() === text.trim().toLowerCase()) {
+            return button.click()
+          }
+        }
+        const links = await rowElement.findElements(By.css('a'))
+        for (const link of links) {
+          if ((await link.getText()).trim().toLowerCase() === text.trim().toLowerCase()) {
+            return link.click()
+          }
+        }
+        throw new Error(`Action "${text}" not found in row`)
+      }
+    }
+  }
+
+  async function getTableHeaders (table) {
+    const headers = await table.findElements(By.css('thead th'))
+    const texts = []
+    for (const header of headers) {
+      texts.push((await header.getText()).trim().toLowerCase())
+    }
+    return texts
   }
 
   async function findTableByCaption (label) {
