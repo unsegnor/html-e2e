@@ -23,6 +23,7 @@ module.exports = async function (testUserOptions) {
     set,
     setValueFor: set,
     doAction,
+    getAll,
     close
   })
 
@@ -209,6 +210,10 @@ module.exports = async function (testUserOptions) {
     })
 
     return inputOptions[0]
+  }
+
+  async function getAll (label) {
+    return []
   }
 
   async function mustBeAbleTo (description) {
