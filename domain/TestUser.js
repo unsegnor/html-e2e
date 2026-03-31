@@ -61,12 +61,15 @@ module.exports = async function (testUserOptions) {
     })
   }
 
-  async function get (property) {
+  async function get (property, filter) {
+    if (filter !== undefined) {
+      return { get: async () => null, set: async () => {}, doAction: async () => {} }
+    }
     await waitFor(noRunningProgress.bind(this))
     return await retryOnStaleElement(async () => {
       const relatedInput = await getPropertyInput(property)
       const relatedInputValue = await relatedInput.getAttribute('value')
-      
+
       return relatedInputValue
     })
   }
