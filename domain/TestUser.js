@@ -24,7 +24,6 @@ module.exports = async function (testUserOptions) {
     setValueFor: set,
     doAction,
     getAll,
-    getColumn,
     close
   })
 
@@ -319,33 +318,6 @@ module.exports = async function (testUserOptions) {
       }
     }
     return null
-  }
-
-  async function getColumn (columnName) {
-    const tables = await driver.findElements(By.css('table'))
-    if (tables.length === 0) throw new Error('No table found')
-
-    for (const table of tables) {
-      const headers = await table.findElements(By.css('th'))
-      for (let i = 0; i < headers.length; i++) {
-        const headerText = await headers[i].getText()
-        if (headerText.trim().toLowerCase() === columnName.trim().toLowerCase()) {
-          return getColumnValues(table, i)
-        }
-      }
-    }
-
-    throw new Error(`Column "${columnName}" not found`)
-  }
-
-  async function getColumnValues (table, columnIndex) {
-    const rows = await table.findElements(By.css('tbody tr'))
-    const values = []
-    for (const row of rows) {
-      const cells = await row.findElements(By.css('td'))
-      if (cells[columnIndex]) values.push(await cells[columnIndex].getText())
-    }
-    return values
   }
 
   async function mustBeAbleTo (description) {
