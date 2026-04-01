@@ -7,8 +7,9 @@ const os = require('os')
 const ONE_MB = 1024 * 1024
 
 describe('testing temp cleanup', function () {
-  it('must not leave significant disk usage in temp after closing', async function () {
-    const sizeBefore = tempDirSize()
+  it('must not leave significant disk usage in temp or project dir after closing', async function () {
+    const tempSizeBefore = dirSize(os.tmpdir())
+    const projectSizeBefore = dirSize(__dirname)
 
     const server = await FakeServer()
     const user = await TestUser({ showBrowser: false })
@@ -16,16 +17,13 @@ describe('testing temp cleanup', function () {
     await user.close()
     await server.close()
 
-    const sizeAfter = tempDirSize()
-    const growth = sizeAfter - sizeBefore
+    const tempGrowth = dirSize(os.tmpdir()) - tempSizeBefore
+    const projectGrowth = dirSize(__dirname) - projectSizeBefore
 
-    expect(growth, `Temp dir grew by ${growth} bytes after closing (limit: ${ONE_MB} bytes)`).to.be.at.most(ONE_MB)
+    expect(tempGrowth, `Temp dir grew by ${tempGrowth} bytes after closing (limit: ${ONE_MB} bytes)`).to.be.at.most(ONE_MB)
+    expect(projectGrowth, `Project dir grew by ${projectGrowth} bytes after closing (limit: ${ONE_MB} bytes)`).to.be.at.most(ONE_MB)
   })
 })
-
-function tempDirSize () {
-  return dirSize(os.tmpdir())
-}
 
 function dirSize (dirPath) {
   let total = 0
