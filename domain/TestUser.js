@@ -7,11 +7,15 @@ process.env.NODE_ENV = previousNodeEnv
 const { asyncFindAll } = require('async-javascript')
 const { Builder, By, Key, until } = require('selenium-webdriver')
 const chrome = require('selenium-webdriver/chrome')
+const fs = require('fs')
+const os = require('os')
+const path = require('path')
 let isChromedriverInstalled = false
 
 module.exports = async function (testUserOptions) {
   let _testUserOptions = testUserOptions ?? {showBrowser: false}
   let _showBrowser = _testUserOptions.showBrowser
+  let userDataDir
 
   const driver = await getDriver()
 
@@ -329,6 +333,7 @@ module.exports = async function (testUserOptions) {
 
   async function close () {
     await driver.quit()
+    fs.rmSync(userDataDir, { recursive: true, force: true })
   }
 
   async function ensureChromeDriverIsInstalled(){
@@ -344,7 +349,9 @@ module.exports = async function (testUserOptions) {
     var retries = (retries == undefined) ? 3 : retries
     let newDriver
     try {
+      userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-e2e-'))
       let options = new chrome.Options()
+      options.addArguments('--user-data-dir=' + userDataDir)
       if(!_showBrowser) options.addArguments('--headless')
       newDriver = await new Builder()
         .forBrowser('chrome')
