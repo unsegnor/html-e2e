@@ -40,7 +40,7 @@ module.exports = async function (testUserOptions) {
         waitFor(getActionLinkFor.bind(this, description))
       ])
 
-      if (!option) throw new Error(`user could not ${description}`)
+      if (!option) throw new Error(`"${description}" not found`)
 
       await option.click()
     })
@@ -170,9 +170,17 @@ module.exports = async function (testUserOptions) {
     if (attributeValue) return true
   }
 
+  async function isVisibleToUser(element) {
+    const displayed = await element.isDisplayed()
+    if (!displayed) return false
+    const rect = await element.getRect()
+    return rect.width > 1 || rect.height > 1
+  }
+
   async function getActionButtonFor (description) {
     const buttons = await driver.findElements(By.css('button'))
     const buttonOptions = await asyncFindAll(buttons, async function (button) {
+      if (!await isVisibleToUser(button)) return false
       if (await isDisabled(button)) return false
 
       const buttonText = await button.getText()
@@ -187,6 +195,7 @@ module.exports = async function (testUserOptions) {
   async function getActionLinkFor (description) {
     const links = await driver.findElements(By.css('a'))
     const linkOptions = await asyncFindAll(links, async function (link) {
+      if (!await isVisibleToUser(link)) return false
       if (await isDisabled(link)) return false
 
       const linkText = await link.getText()
@@ -203,6 +212,7 @@ module.exports = async function (testUserOptions) {
     const inputOptions = await asyncFindAll(inputs, async function (input) {
       const inputType = await input.getAttribute('type')
       if (inputType == 'button' || inputType == 'submit') {
+        if (!await isVisibleToUser(input)) return false
         if (await isDisabled(input)) return false
         if (await attributeHasValue({element: input, attribute: 'value', value: description})) return true
         if (await attributeHasValue({element: input, attribute: 'title', value: description})) return true
@@ -285,7 +295,9 @@ module.exports = async function (testUserOptions) {
     for (const table of tables) {
       const captions = await table.findElements(By.css('caption'))
       if (captions.length > 0) {
-        const captionText = await captions[0].getText()
+        const caption = captions[0]
+        if (!await isVisibleToUser(caption)) continue
+        const captionText = await caption.getText()
         if (captionText.trim().toLowerCase() === label.trim().toLowerCase()) return table
       }
     }
@@ -313,6 +325,7 @@ module.exports = async function (testUserOptions) {
       `, list)
 
       if (heading) {
+        if (!await isVisibleToUser(heading)) continue
         const headingText = await heading.getText()
         if (headingText.trim().toLowerCase() === label.trim().toLowerCase()) return list
       }

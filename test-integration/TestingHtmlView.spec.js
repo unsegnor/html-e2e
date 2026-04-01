@@ -398,7 +398,7 @@ function getProgressTag({timeToDisappear}){
           await server.setBody(htmlBody)
           await user.open(server.url)
   
-          await expectToThrow('user could not perform action', async function () {
+          await expectToThrow('"perform action" not found', async function () {
             await user.doAction('perform action')
           })
         })
