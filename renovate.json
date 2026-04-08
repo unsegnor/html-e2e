@@ -1,4 +1,7 @@
 {
-  "extends": ["group:monorepos"],
-  "automerge": true
+  "extends": [
+    "group:monorepos"
+  ],
+  "automerge": true,
+  "minimumReleaseAge": "20 days"
 }
