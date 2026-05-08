@@ -24,69 +24,59 @@ describe('testing html view', function () {
   //identifier: label, placeholder
   //element type: text, textarea, pass option...
 
+  const textSettableButtons = [
+    {
+      label: 'buttons',
+      textLabel: 'text',
+      textAttr: 'innerText',
+      html: (text, id) => `<button${id ? ` id="${id}"` : ''}>${text}</button>`,
+      basicText: 'perform available option in button',
+      asyncText: 'perform available option in button'
+    },
+    {
+      label: 'input buttons',
+      textLabel: 'value',
+      textAttr: 'value',
+      html: (text, id) => `<input type="button"${id ? ` id="${id}"` : ''} value="${text}">`,
+      basicText: 'perform available option in button value',
+      asyncText: 'perform available option in input button'
+    }
+  ]
+
   describe('mustBeAbleTo', function () {
     describe('must find options', function () {
-      it('in buttons text', async function () {
-        server.setBody('<button>perform available option in button</button>')
-        await user.open(server.url)
-        await user.mustBeAbleTo('perform available option in button')
-      })
+      for (const el of textSettableButtons) {
+        it(`in ${el.label} ${el.textLabel}`, async function () {
+          server.setBody(el.html(el.basicText))
+          await user.open(server.url)
+          await user.mustBeAbleTo(el.basicText)
+        })
 
-      it('in buttons text ignoring case', async function () {
-        server.setBody('<button>perform AVAILABLE option in button</button>')
-        await user.open(server.url)
-        await user.mustBeAbleTo('perform available OPTION in button')
-      })
+        it(`in ${el.label} ${el.textLabel} ignoring case`, async function () {
+          server.setBody(el.html(el.basicText.replace('available', 'AVAILABLE')))
+          await user.open(server.url)
+          await user.mustBeAbleTo(el.basicText.replace('option', 'OPTION'))
+        })
 
-      it('in input buttons value', async function () {
-        server.setBody('<input type="button" value="perform available option in button value">')
-        await user.open(server.url)
-        await user.mustBeAbleTo('perform available option in button value')
-      })
+        it(`in ${el.label} text filled up to 1 second after loading the webpage`, async function () {
+          server.setBody(`
+            <script>setTimeout(function(){ document.getElementById('button1').${el.textAttr} = '${el.asyncText}'}, 1000)</script>
+            ${el.html('provisional text while loading', 'button1')}
+          `)
+          await user.open(server.url)
+          await user.mustBeAbleTo(el.asyncText)
+        })
 
-      it('in input buttons value ignoring case', async function () {
-        server.setBody('<input type="button" value="perform AVAILABLE option in button value">')
-        await user.open(server.url)
-        await user.mustBeAbleTo('perform available OPTION in button value')
-      })
-
-      it('in buttons text filled up to 1 second after loading the webpage', async function () {
-        server.setBody(`
-                    <script>setTimeout(function(){ document.getElementById('button1').innerText = 'perform available option in button'}, 1000)</script>
-                    <button id="button1">provisional text while loading</button>
-                    `)
-        await user.open(server.url)
-        await user.mustBeAbleTo('perform available option in button')
-      })
-
-      it('in buttons text filled up to 1 second after performing an action', async function () {
-        server.setBody(`
-                    <button id="button0" onclick="setTimeout(function(){ document.getElementById('button1').innerText = 'perform available option in button'}, 1000)">load more actions</button>
-                    <button id="button1">provisional text while loading</button>
-                    `)
-        await user.open(server.url)
-        await user.doAction('load more actions')
-        await user.mustBeAbleTo('perform available option in button')
-      })
-
-      it('in input buttons text filled up to 1 second after loading the webpage', async function () {
-        server.setBody(`
-                    <script>setTimeout(function(){ document.getElementById('button1').value = 'perform available option in input button'}, 1000)</script>
-                    <input type="button" id="button1" value="provisional text while loading">
-                    `)
-        await user.open(server.url)
-        await user.mustBeAbleTo('perform available option in input button')
-      })
-
-      it('in input buttons text filled up to 1 second after performing an action', async function () {
-        server.setBody(`
-                    <button id="button0" onclick="setTimeout(function(){ document.getElementById('button1').value = 'perform available option in input button'}, 1000)">load more actions</button>
-                    <input type="button" id="button1" value="provisional text while loading">
-                    `)
-        await user.open(server.url)
-        await user.doAction('load more actions')
-        await user.mustBeAbleTo('perform available option in input button')
-      })
+        it(`in ${el.label} text filled up to 1 second after performing an action`, async function () {
+          server.setBody(`
+            <button id="button0" onclick="setTimeout(function(){ document.getElementById('button1').${el.textAttr} = '${el.asyncText}'}, 1000)">load more actions</button>
+            ${el.html('provisional text while loading', 'button1')}
+          `)
+          await user.open(server.url)
+          await user.doAction('load more actions')
+          await user.mustBeAbleTo(el.asyncText)
+        })
+      }
     })
 
     describe('must throw', function () {
@@ -98,21 +88,20 @@ describe('testing html view', function () {
           })
         })
 
-        it('exists as input but is disabled', async function () {
-          server.setBody('<input type="button" value="perform disabled option as input" disabled>')
-          await user.open(server.url)
-          await expectToThrow('user is not able to perform disabled option as input', async function () {
-            await user.mustBeAbleTo('perform disabled option as input')
-          })
-        })
+        const disabledCases = [
+          {description: 'exists as input but is disabled', text: 'perform disabled option as input', html: '<input type="button" value="perform disabled option as input" disabled>'},
+          {description: 'exists as button but is disabled', text: 'perform disabled option as button', html: '<button disabled>perform disabled option as button</button>'}
+        ]
 
-        it('exists as button but is disabled', async function () {
-          server.setBody('<button disabled>perform disabled option as button</button>')
-          await user.open(server.url)
-          await expectToThrow('user is not able to perform disabled option as button', async function () {
-            await user.mustBeAbleTo('perform disabled option as button')
+        for (const {description, text, html} of disabledCases) {
+          it(description, async function () {
+            server.setBody(html)
+            await user.open(server.url)
+            await expectToThrow(`user is not able to ${text}`, async function () {
+              await user.mustBeAbleTo(text)
+            })
           })
-        })
+        }
       })
     })
   })
