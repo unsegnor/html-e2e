@@ -3,5 +3,6 @@
     "group:monorepos"
   ],
   "automerge": true,
-  "minimumReleaseAge": "20 days"
+  "minimumReleaseAge": "60 days",
+  "internalChecksFilter": "strict"
 }
