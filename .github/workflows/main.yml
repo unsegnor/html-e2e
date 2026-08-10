@@ -31,8 +31,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       
       #Run tests
-      - run: npm ci
-      - run: npm test
+      - run: yarn install
+      - run: yarn test
 
       #Increase version in main branch
       - name: "Automated Version Bump"
